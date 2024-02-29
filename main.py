@@ -9,6 +9,7 @@ from pytube import YouTube
 from pydub import AudioSegment
 import concurrent.futures
 import eyed3
+eyed3.log.setLevel("ERROR")
 
 
 def main():
