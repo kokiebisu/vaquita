@@ -9,6 +9,8 @@ from pytube import YouTube
 from pydub import AudioSegment
 import concurrent.futures
 import eyed3
+from tqdm import tqdm
+
 eyed3.log.setLevel("ERROR")
 
 
@@ -21,31 +23,62 @@ def main():
     yt_data = extract_yt_info(search_query)
     song_urls = get_song_urls(yt_data)
     thumbnail_img_url, artist_name, album_title = get_metadata_info(yt_data)
+    path = get_desktop_folder()
+    export_path = f'{path}/{album_title}'
+    os.mkdir(export_path)
+
     max_workers = 4
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) \
-            as executor:
-        future_to_url = {
-            executor.submit(process_video, song_url, thumbnail_img_url,
-                            artist_name, album_title): song_url for song_url
-            in song_urls
-        }
+    with tqdm(total=len(song_urls), desc="Processing Videos", unit="video") \
+            as pbar:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) \
+                as executor:
+            future_to_url = {
+                executor.submit(process_video_with_progress, song_url, 
+                                thumbnail_img_url, artist_name, 
+                                album_title, export_path, pbar): song_url 
+                for song_url
+                in song_urls
+            }
 
-        for future in concurrent.futures.as_completed(future_to_url):
-            song_url = future_to_url[future]
-            try:
-                future.result()
-            except Exception as e:
-                print(f"Error processing {song_url}: {e}")
+            for future in concurrent.futures.as_completed(future_to_url):
+                song_url = future_to_url[future]
+                try:
+                    future.result()
+                except Exception as e:
+                    print(f"Error processing {song_url}: {e}")
 
 
-def process_video(video_url, thumbnail_img_url, artist_name, album_title):
+def get_desktop_folder():
+    # Get the user's home directory
+    home_dir = os.path.expanduser("~")
+
+    # Check the operating system and get the desktop folder
+    if os.name == 'posix':  # Unix/Linux/Mac
+        desktop_folder = os.path.join(home_dir, 'Desktop')
+
+    return desktop_folder
+
+
+def process_video_with_progress(song_url, thumbnail_img_url, artist_name, 
+                                album_title, export_path, pbar):
+    try:
+        process_video(song_url, thumbnail_img_url, artist_name, album_title, 
+                      export_path)
+        pbar.update(1)
+    except Exception as e:
+        print(f"Error processing {song_url}: {e}")
+
+
+def process_video(video_url, thumbnail_img_url, artist_name, album_title, 
+                  export_path):
     video_title = download_video(video_url=video_url)
     mp3_file_path = convert_video_format(
-        video_title, video_filename=f'{video_title}.mp4')
+        video_title=video_title, video_filename=f'{video_title}.mp4', 
+        export_path=export_path)
     attach_metadata(mp3_file_path,
                     thumbnail_img_url, artist_name, album_title, 
-                    video_title)
+                    video_title, export_path)
 
 
 def sanitize_filename(filename):
@@ -82,7 +115,7 @@ def extract_yt_info(search_query):
                     )
         raise Exception("Not found")
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"extract_yt_info: {e}")
         return None
 
 
@@ -114,10 +147,12 @@ def get_song_urls(data):
 
 
 def attach_metadata(
-        mp3_file, thumbnail_img_url, artist_name, album_title, title):
-    audiofile = eyed3.load(mp3_file)
+        mp3_file, thumbnail_img_url, artist_name, album_title, title, 
+        export_path):
+    audiofile = eyed3.load(f'{export_path}/{mp3_file}')
     response = urllib.request.urlopen(thumbnail_img_url)
     imagedata = response.read()
+
     audiofile.tag.artist = artist_name
     audiofile.tag.album_artist = artist_name
     audiofile.tag.title = title
@@ -134,13 +169,13 @@ def download_video(video_url):
     return video_title
 
 
-def convert_video_format(video_title, video_filename, input_format='mp4', 
-                         output_format='mp3'):
+def convert_video_format(video_title, video_filename, export_path, 
+                         input_format='mp4', output_format='mp3'):
     sanitized_filename = sanitize_filename(video_filename)
     os.rename(video_filename, sanitized_filename)
     audio = AudioSegment.from_file(sanitized_filename, format=input_format)
     audio_file_path = f'{video_title}.{output_format}'
-    audio.export(audio_file_path, codec=output_format)
+    audio.export(f'{export_path}/{audio_file_path}', codec=output_format)
     os.remove(sanitized_filename)
     return audio_file_path
 
