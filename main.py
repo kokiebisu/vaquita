@@ -1,4 +1,3 @@
-import argparse
 import json
 import os
 import requests
@@ -12,13 +11,8 @@ import eyed3
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Pass in the url of the image'
-                                     'in which you want to download')
-    parser.add_argument(
-        '--artist', required=True, help='Artist')
-    parser.add_argument(
-        '--album', required=True, help='Album')
-    args = parser.parse_args()
+    artist = input("What is the name of the artist?\n")
+    album = input("What is the name of the album?\n")
 
     search_query = generate_search_query(artist_name=artist,
                                          album_name=album)
