@@ -7,6 +7,7 @@ import urllib
 from bs4 import BeautifulSoup
 from pytube import YouTube
 from pydub import AudioSegment
+import concurrent.futures
 import eyed3
 
 
@@ -19,8 +20,22 @@ def main():
     yt_data = extract_yt_info(search_query)
     song_urls = get_song_urls(yt_data)
     thumbnail_img_url, artist_name, album_title = get_metadata_info(yt_data)
-    for video_url in song_urls:
-        process_video(video_url, thumbnail_img_url, artist_name, album_title)
+    max_workers = 4
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) \
+            as executor:
+        future_to_url = {
+            executor.submit(process_video, song_url, thumbnail_img_url,
+                            artist_name, album_title): song_url for song_url
+            in song_urls
+        }
+
+        for future in concurrent.futures.as_completed(future_to_url):
+            song_url = future_to_url[future]
+            try:
+                future.result()
+            except Exception as e:
+                print(f"Error processing {song_url}: {e}")
 
 
 def process_video(video_url, thumbnail_img_url, artist_name, album_title):
