@@ -1,4 +1,5 @@
 from pathlib import Path
+import concurrent.futures
 import json
 import os
 import requests
@@ -9,7 +10,6 @@ from bs4 import BeautifulSoup
 from pytube import YouTube
 from pydub import AudioSegment
 from tqdm import tqdm
-import concurrent.futures
 import eyed3
 
 eyed3.log.setLevel("ERROR")
