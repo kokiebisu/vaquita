@@ -15,17 +15,15 @@ eyed3.log.setLevel("ERROR")
 
 
 def main():
-    artist = input("What is the name of the artist?\n")
-    album = input("What is the name of the album?\n")
+    # playlist_url = input("Provide the Youtube album playlist URL\n")
+    # album = input("What is the name of the album?\n")
+    playlist_url = 'https://www.youtube.com/playlist?list=OLAK5uy_maBlY_Q9yOjOWP9EyCnbzTsHZ2zR55w9E'
 
-    search_query = generate_search_query(artist_name=artist,
-                                         album_name=album)
-    yt_data = extract_yt_info(search_query)
-    song_urls = get_song_urls(yt_data)
-    thumbnail_img_url, artist_name, album_title = get_metadata_info(yt_data)
+    artist_name, album_title, thumbnail_img_url, song_urls = \
+        extract_yt_info(playlist_url)
     path = get_desktop_folder()
-    export_path = f'{path}/{album_title}'
-    os.mkdir(export_path)
+    output_path = f'{path}/{album_title}'
+    os.mkdir(output_path)
 
     max_workers = 4
 
@@ -34,9 +32,9 @@ def main():
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) \
                 as executor:
             future_to_url = {
-                executor.submit(process_video_with_progress, song_url, 
+                executor.submit(process_video, song_url, 
                                 thumbnail_img_url, artist_name, 
-                                album_title, export_path, pbar): song_url 
+                                album_title, output_path, pbar): song_url
                 for song_url
                 in song_urls
             }
@@ -50,51 +48,45 @@ def main():
 
 
 def get_desktop_folder():
-    # Get the user's home directory
     home_dir = os.path.expanduser("~")
-
-    # Check the operating system and get the desktop folder
     if os.name == 'posix':  # Unix/Linux/Mac
         desktop_folder = os.path.join(home_dir, 'Desktop')
-
     return desktop_folder
 
 
-def process_video_with_progress(song_url, thumbnail_img_url, artist_name, 
-                                album_title, export_path, pbar):
+def process_video(song_url, thumbnail_img_url, artist_name,
+                  album_title, output_path, pbar):
     try:
-        process_video(song_url, thumbnail_img_url, artist_name, album_title, 
-                      export_path)
+        video_title = download_video(video_url=song_url,
+                                     output_path=output_path)
+        mp3_file_path = convert_video_format(
+                            video_title=video_title,
+                            video_filename=f'{video_title}.mp4',
+                            output_path=output_path)
+        attach_metadata(mp3_file_path,
+                        thumbnail_img_url, artist_name, album_title,
+                        video_title, output_path)
         pbar.update(1)
     except Exception as e:
         print(f"Error processing {song_url}: {e}")
-
-
-def process_video(video_url, thumbnail_img_url, artist_name, album_title, 
-                  export_path):
-    video_title = download_video(video_url=video_url)
-    mp3_file_path = convert_video_format(
-        video_title=video_title, video_filename=f'{video_title}.mp4', 
-        export_path=export_path)
-    attach_metadata(mp3_file_path,
-                    thumbnail_img_url, artist_name, album_title, 
-                    video_title, export_path)
 
 
 def sanitize_filename(filename):
     return filename.replace(' ', '_')
 
 
-def generate_search_query(artist_name, album_name):
-    return f'{artist_name.lower().replace("&", "")}+{album_name.lower()}'\
-        .replace(' ', '+')
+def sanitize_title(title):
+    keywords_to_exclude = ['official video', 'official music video', 'lyrics', 
+                           'audio', 'hd', 'hq', 'remix']
+    title_lower = title.lower()
+    for keyword in keywords_to_exclude:
+        title_lower = title_lower.replace(keyword, '')
+    return title_lower.strip()
 
 
-def extract_yt_info(search_query):
-    base_url = 'https://www.youtube.com/results'
-    params = {'search_query': search_query}
+def extract_yt_info(playlist_url):
     try:
-        response = requests.get(base_url, params=params)
+        response = requests.get(playlist_url)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
         script_tags = soup.find_all('script')
@@ -103,53 +95,43 @@ def extract_yt_info(search_query):
                 script_content = script_tag.get_text()
                 match = re.search(r'var\s+ytInitialData\s*=\s*({.*?});', 
                                   script_content)
-
                 if match:
                     yt_initial_data_str = match.group(1)
                     data = json.loads(yt_initial_data_str)
-                    return (
-                        data['contents']['twoColumnSearchResultsRenderer']
-                        ['secondaryContents']
-                        ['secondarySearchContainerRenderer']['contents']
-                        [0]['universalWatchCardRenderer']
+                    artist_name = (
+                        data['header']['playlistHeaderRenderer']
+                        ['subtitle']['simpleText'].split(' • ')[0])
+                    album_name = (
+                        data['metadata']['playlistMetadataRenderer']
+                        ['albumName'])
+                    thumbnail_img_url = (
+                        data['sidebar']['playlistSidebarRenderer']
+                        ['items'][0]['playlistSidebarPrimaryInfoRenderer']
+                        ['thumbnailRenderer']
+                        ['playlistCustomThumbnailRenderer']
+                        ['thumbnail']['thumbnails'][-1]['url']
                     )
+                    song_urls = [(
+                        d['playlistVideoRenderer']['navigationEndpoint']
+                        ['commandMetadata']['webCommandMetadata']['url']
+                    ) for d in (
+                        data['contents']['twoColumnBrowseResultsRenderer']
+                        ['tabs'][0]['tabRenderer']['content']
+                        ['sectionListRenderer']['contents'][0]
+                        ['itemSectionRenderer']['contents'][0]
+                        ['playlistVideoListRenderer']['contents'])]
+                    return artist_name, album_name, thumbnail_img_url, [
+                        f'www.youtube.com{url}' for url in song_urls]
         raise Exception("Not found")
     except Exception as e:
         print(f"extract_yt_info: {e}")
         return None
 
 
-def get_metadata_info(data):
-    album_title = (
-        data['header']['watchCardRichHeaderRenderer']
-        ['title']['simpleText']
-    )
-    _, artist_name = map(str.strip, data['header']
-                         ['watchCardRichHeaderRenderer']
-                         ['subtitle']['simpleText'].split(
-                                '•', 1))
-    thumbnail_img_url = (
-        data['callToAction']['watchCardHeroVideoRenderer']
-        ['heroImage']['singleHeroImageRenderer']
-        ['thumbnail']['thumbnails'][0]['url']
-    )
-    return thumbnail_img_url, artist_name, album_title
-
-
-def get_song_urls(data):
-    urls = []
-    for d in data['sections'][0]['watchCardSectionSequenceRenderer'][
-            'lists'][0]['verticalWatchCardListRenderer']['items']:     
-        url = d['watchCardCompactVideoRenderer']['navigationEndpoint'][
-            'commandMetadata']['webCommandMetadata']['url']
-        urls.append(f'www.youtube.com{url}')
-    return urls
-
-
 def attach_metadata(
-        mp3_file, thumbnail_img_url, artist_name, album_title, title, 
-        export_path):
-    audiofile = eyed3.load(f'{export_path}/{mp3_file}')
+        mp3_file_path, thumbnail_img_url, artist_name, album_title, title, 
+        output_path):
+    audiofile = eyed3.load(f'{output_path}/{mp3_file_path}')
     response = urllib.request.urlopen(thumbnail_img_url)
     imagedata = response.read()
 
@@ -161,22 +143,24 @@ def attach_metadata(
     audiofile.tag.save()
 
 
-def download_video(video_url):
+def download_video(video_url, output_path='.'):
     yt = YouTube(video_url)
     video_stream = yt.streams.get_highest_resolution()
     video_title = yt.title
-    video_stream.download()
+    video_stream.download(output_path)
     return video_title
 
 
-def convert_video_format(video_title, video_filename, export_path, 
+def convert_video_format(video_title, video_filename, output_path,
                          input_format='mp4', output_format='mp3'):
     sanitized_filename = sanitize_filename(video_filename)
-    os.rename(video_filename, sanitized_filename)
-    audio = AudioSegment.from_file(sanitized_filename, format=input_format)
+    os.rename(f'{output_path}/{video_filename}',
+              f'{output_path}/{sanitized_filename}')
+    audio = AudioSegment.from_file(f'{output_path}/{sanitized_filename}',
+                                   format=input_format)
     audio_file_path = f'{video_title}.{output_format}'
-    audio.export(f'{export_path}/{audio_file_path}', codec=output_format)
-    os.remove(sanitized_filename)
+    audio.export(f'{output_path}/{audio_file_path}', codec=output_format)
+    os.remove(f'{output_path}/{sanitized_filename}')
     return audio_file_path
 
 
