@@ -2,13 +2,13 @@ from pathlib import Path
 import concurrent.futures
 import json
 import os
-import requests
 import re
 import urllib
 
 from bs4 import BeautifulSoup
 from pytube import YouTube
 from pydub import AudioSegment
+import requests
 from tqdm import tqdm
 import eyed3
 
