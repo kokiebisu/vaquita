@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Access the MUSIC_FOLDER environment variable
-password="XXXXXXX"
 music_folder="$MUSIC_FOLDER"
 
 # Check if the variable is set
@@ -11,4 +10,4 @@ if [ -z "$music_folder" ]; then
 fi
 
 # Execute the AppleScript file with administrator privileges for each MP3 file
-echo "$password" | sudo -S find "$music_folder" -name '*.mp3' -exec osascript -e 'tell application "Music" to add POSIX file "{}"' \;
+echo "$PASSWORD" | sudo -S find "$music_folder" -name '*.mp3' -exec osascript -e 'tell application "Music" to add POSIX file "{}"' \;

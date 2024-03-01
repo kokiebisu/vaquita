@@ -16,9 +16,7 @@ eyed3.log.setLevel("ERROR")
 
 
 def main():
-    # playlist_url = input("Provide the Youtube album playlist URL\n")
-    # album = input("What is the name of the album?\n")
-    playlist_url = 'https://www.youtube.com/playlist?list=OLAK5uy_nQ-_YIDTrNSdH5xOf77UrR-KsO416sxxs'
+    playlist_url = input("Provide the Youtube album playlist URL\n")
 
     artist_name, album_title, thumbnail_img_url, song_urls = \
         extract_yt_info(playlist_url)

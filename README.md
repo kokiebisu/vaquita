@@ -8,9 +8,19 @@ Waved is a project that enables downloading music from Youtube and importing it 
 
 ### Prerequisites
 
-Make sure to fill in the password inside the import_to_apple_music.sh script.
+Make sure to configure your laptop login password before running the command
+
+```
+export PASSWORD=XXXXXXXXXX
+```
 
 ### Installation
+
+```
+pip install -r requirements.txt
+```
+
+### Usage
 
 ```bash
 make do
