@@ -18,7 +18,7 @@ eyed3.log.setLevel("ERROR")
 def main():
     # playlist_url = input("Provide the Youtube album playlist URL\n")
     # album = input("What is the name of the album?\n")
-    playlist_url = 'https://www.youtube.com/playlist?list=OLAK5uy_maBlY_Q9yOjOWP9EyCnbzTsHZ2zR55w9E'
+    playlist_url = 'https://www.youtube.com/playlist?list=OLAK5uy_nQ-_YIDTrNSdH5xOf77UrR-KsO416sxxs'
 
     artist_name, album_title, thumbnail_img_url, song_urls = \
         extract_yt_info(playlist_url)
@@ -46,6 +46,10 @@ def main():
                     future.result()
                 except Exception as e:
                     print(f"Error processing {song_url}: {e}")
+
+    # write the output file path
+    with open("output_dir.txt", "w") as file:
+        file.write(output_path)
 
 
 def get_desktop_folder():
