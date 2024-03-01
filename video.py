@@ -1,5 +1,4 @@
 from pathlib import Path
-from utils import Utils
 import os
 
 from pytube import YouTube
@@ -7,6 +6,7 @@ from pydub import AudioSegment
 import urllib
 import eyed3
 
+from utils import Utils
 
 eyed3.log.setLevel("ERROR")
 
