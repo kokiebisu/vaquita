@@ -1,3 +1,4 @@
+from pathlib import Path
 import json
 import os
 import requests
@@ -7,9 +8,9 @@ import urllib
 from bs4 import BeautifulSoup
 from pytube import YouTube
 from pydub import AudioSegment
+from tqdm import tqdm
 import concurrent.futures
 import eyed3
-from tqdm import tqdm
 
 eyed3.log.setLevel("ERROR")
 
@@ -32,8 +33,8 @@ def main():
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) \
                 as executor:
             future_to_url = {
-                executor.submit(process_video, song_url, 
-                                thumbnail_img_url, artist_name, 
+                executor.submit(process_video, song_url,
+                                thumbnail_img_url, artist_name,
                                 album_title, output_path, pbar): song_url
                 for song_url
                 in song_urls
@@ -48,9 +49,8 @@ def main():
 
 
 def get_desktop_folder():
-    home_dir = os.path.expanduser("~")
-    if os.name == 'posix':  # Unix/Linux/Mac
-        desktop_folder = os.path.join(home_dir, 'Desktop')
+    home_dir = Path.home()
+    desktop_folder = home_dir / 'Desktop'
     return desktop_folder
 
 
@@ -58,30 +58,79 @@ def process_video(song_url, thumbnail_img_url, artist_name,
                   album_title, output_path, pbar):
     try:
         video_title = download_video(video_url=song_url,
+                                     artist_name=artist_name.lower(),
+                                     album_title=album_title.lower(),
                                      output_path=output_path)
-        mp3_file_path = convert_video_format(
+        convert_video_format(
                             video_title=video_title,
-                            video_filename=f'{video_title}.mp4',
                             output_path=output_path)
-        attach_metadata(mp3_file_path,
+        attach_metadata(video_title,
                         thumbnail_img_url, artist_name, album_title,
                         video_title, output_path)
         pbar.update(1)
     except Exception as e:
         print(f"Error processing {song_url}: {e}")
+        raise e
 
 
-def sanitize_filename(filename):
-    return filename.replace(' ', '_')
+def sanitize_filename(filename, artist_name, album_title):
+    try:
+        keywords_to_exclude = ['official', 'video', 'music', 'video', 
+                               'lyrics', 'audio', 'hd', 'hq', 'remix'] + \
+                                   artist_name.split(' ') + \
+                                   album_title.split(' ')
+        words = filename.split()
+        sanitized_words = []
+        for word in words:
+            if word == '-' or word == '/' or word == '|':
+                break
+            # Preserve original case for words containing apostrophes
+            if "'" in word:
+                sanitized_words.append(word)
+            else:
+                # Remove content after slash (/) or pipe (|) if present
+                if '/' in word:
+                    word = word.split('/')[0]
+                elif '|' in word:
+                    word = word.split('|')[0]
+                elif '-' in word:
+                    word = word.split('-')[0]
+
+                sanitized_words.append(word.title() if word.lower() not in
+                                       keywords_to_exclude else word)
+        return ' '.join(sanitized_words)
+    except Exception as e:
+        print(f'Error sanitizing filename: {e}')
+        raise e
 
 
-def sanitize_title(title):
-    keywords_to_exclude = ['official video', 'official music video', 'lyrics', 
-                           'audio', 'hd', 'hq', 'remix']
-    title_lower = title.lower()
-    for keyword in keywords_to_exclude:
-        title_lower = title_lower.replace(keyword, '')
-    return title_lower.strip()
+def sanitize_filename_without_stuff(filename):
+    try:
+        keywords_to_exclude = ['official', 'video', 'music', 'video', 
+                               'lyrics', 'audio', 'hd', 'hq', 'remix']
+        words = filename.split()
+        sanitized_words = []
+        for word in words:
+            if word == '-' or word == '/' or word == '|':
+                break
+            # Preserve original case for words containing apostrophes
+            if "'" in word:
+                sanitized_words.append(word)
+            else:
+                # Remove content after slash (/) or pipe (|) if present
+                if '/' in word:
+                    word = word.split('/')[0]
+                elif '|' in word:
+                    word = word.split('|')[0]
+                elif '-' in word:
+                    word = word.split('-')[0]
+
+                sanitized_words.append(word.title() if word.lower() not in
+                                       keywords_to_exclude else word)
+        return ' '.join(sanitized_words)
+    except Exception as e:
+        print(f'Error sanitizing filename: {e}')
+        raise e
 
 
 def extract_yt_info(playlist_url):
@@ -124,44 +173,53 @@ def extract_yt_info(playlist_url):
                         f'www.youtube.com{url}' for url in song_urls]
         raise Exception("Not found")
     except Exception as e:
-        print(f"extract_yt_info: {e}")
+        print(f"Error extracting youtube info: {e}")
         return None
 
 
 def attach_metadata(
-        mp3_file_path, thumbnail_img_url, artist_name, album_title, title, 
+        video_title, thumbnail_img_url, artist_name, album_title, title, 
         output_path):
-    audiofile = eyed3.load(f'{output_path}/{mp3_file_path}')
-    response = urllib.request.urlopen(thumbnail_img_url)
-    imagedata = response.read()
+    try:
+        audiofile = eyed3.load(Path(output_path) / f'{video_title}.mp3')
+        response = urllib.request.urlopen(thumbnail_img_url)
+        imagedata = response.read()
 
-    audiofile.tag.artist = artist_name
-    audiofile.tag.album_artist = artist_name
-    audiofile.tag.title = title
-    audiofile.tag.album = album_title
-    audiofile.tag.images.set(3, imagedata, "image/jpeg", u"cover")
-    audiofile.tag.save()
+        audiofile.tag.artist = artist_name
+        audiofile.tag.album_artist = artist_name
+        audiofile.tag.title = title
+        audiofile.tag.album = album_title
+        audiofile.tag.images.set(3, imagedata, "image/jpeg", u"cover")
+        audiofile.tag.save()
+    except Exception as e:
+        print(f'Error attaching metadata: {e}')
+        raise e
 
 
-def download_video(video_url, output_path='.'):
-    yt = YouTube(video_url)
-    video_stream = yt.streams.get_highest_resolution()
-    video_title = yt.title
-    video_stream.download(output_path)
+def download_video(video_url, artist_name, album_title, output_path='.'):
+    try:
+        yt = YouTube(video_url)
+        video_stream = yt.streams.get_highest_resolution()
+        video_title = sanitize_filename(yt.title, artist_name, album_title)
+        video_stream.download(output_path, filename=f'{video_title}.mp4')
+    except Exception as e:
+        print(f'Error downloading video: {e}')
+        raise e
     return video_title
 
 
-def convert_video_format(video_title, video_filename, output_path,
+def convert_video_format(video_title, output_path,
                          input_format='mp4', output_format='mp3'):
-    sanitized_filename = sanitize_filename(video_filename)
-    os.rename(f'{output_path}/{video_filename}',
-              f'{output_path}/{sanitized_filename}')
-    audio = AudioSegment.from_file(f'{output_path}/{sanitized_filename}',
-                                   format=input_format)
-    audio_file_path = f'{video_title}.{output_format}'
-    audio.export(f'{output_path}/{audio_file_path}', codec=output_format)
-    os.remove(f'{output_path}/{sanitized_filename}')
-    return audio_file_path
+    try:
+        video_title = sanitize_filename_without_stuff(video_title)
+        source_path = Path(output_path) / f'{video_title}.{input_format}'
+        dest_path = Path(output_path) / f'{video_title}.{output_format}'
+        audio = AudioSegment.from_file(source_path, format=input_format)
+        audio.export(dest_path, codec=output_format)
+        os.remove(source_path)
+    except Exception as e:
+        print(f'Error converting video format: {e}')
+        raise e
 
 
 if __name__ == '__main__':
