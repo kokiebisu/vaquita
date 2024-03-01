@@ -23,3 +23,7 @@ pip install -r requirements.txt
 ```sh
 make do
 ```
+
+## Disclaimer
+
+Waved is a project developed for personal use, and the developer(s) do not take any responsibility for its usage or any potential consequences. Use this software at your own risk.
