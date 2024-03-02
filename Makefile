@@ -1,2 +1,2 @@
 do:
-	./bin/run_process.sh
+	./bin/run.sh
