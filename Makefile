@@ -1,2 +1,2 @@
-do:
+run:
 	./bin/run.sh
