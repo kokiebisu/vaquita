@@ -1,3 +1,5 @@
 output_dir.txt
 
 __pycache__/
+
+process.lock
