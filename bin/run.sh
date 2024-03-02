@@ -1,5 +1,13 @@
 #!/bin/bash
 
+cleanup() {
+    echo -e "\n\033[0;31mReceived interrupt signal. Cleaning up...\033[0m"
+    rm -f process.lock
+    exit 1
+}
+
+trap cleanup SIGINT
+
 echo '''
                                
    _________  ____  __  _______
@@ -7,7 +15,8 @@ echo '''
  (__  ) /_/ / / / / /_/ (__  ) 
 /____/\____/_/ /_/\__,_/____/                            
                                 
-A script to download YouTube playlists into albums to be imported into Apple Music.
+This is a Daemon process that monitors the playlists.txt.
+Start adding playlist/song Youtube links in the file...
 '''
 
 # Function to process playlists
@@ -32,19 +41,23 @@ process_playlists() {
     echo -e "\033[0;32mRunning python main.py with link: $PLAYLIST_URL\033[0m"
     python main.py "$PLAYLIST_URL"
 
-    MUSIC_FOLDER=$(cat output_dir.txt)
+    RESOURCE_PATH=$(cat output_dir.txt)
     echo -e "\033[0;36mRunning import_to_apple_music.sh...\033[0m"
-
-    # Execute the AppleScript file with administrator privileges for each MP3 file
-    echo "$PASSWORD" | sudo -S find "$MUSIC_FOLDER" -name '*.mp3' -exec osascript -e 'tell application "Music" to add POSIX file "{}"' \;
-
-    # Cleanup
-    rm -rf "$MUSIC_FOLDER"
+    # If RESOURCE_PATH is pointing to a single file
+    if [ -f "$RESOURCE_PATH" ]; then
+        # Execute the AppleScript file with administrator privileges for the MP3 file
+        echo "$PASSWORD" | sudo -S osascript -e 'tell application "Music" to add POSIX file "'"$RESOURCE_PATH"'"'
+        rm "$RESOURCE_PATH"
+    else
+        # Execute the AppleScript file with administrator privileges for each MP3 file
+        echo "$PASSWORD" | sudo -S find "$RESOURCE_PATH" -name '*.mp3' -exec osascript -e 'tell application "Music" to add POSIX file "{}"' \;
+        # Cleanup
+        rm -rf "$RESOURCE_PATH"
+    fi
+    
     rm -rf "output_dir.txt"
-
     # Remove the processed playlist URL from playlists.txt
     sed -i '' 1d playlists.txt
-
     # Remove the lock file to indicate that processing is completed
     rm -f process.lock
     echo -e "\033[0;32mProcess completed successfully!\033[0m"

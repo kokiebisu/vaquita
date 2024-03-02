@@ -1,30 +1,16 @@
+from pathlib import Path
 import concurrent.futures
 import os
 import sys
 
 from tqdm import tqdm
 
-from lib import extractor, utils, video
+from lib import extractor, song, utils, video
 
 
-def get_youtube_playlist_url():
-    if len(sys.argv) < 2:
-        return input("Provide the YouTube album playlist URL: ")
-    else:
-        return sys.argv[1]
-
-
-def main():
-    playlist_url = get_youtube_playlist_url()
-
-    artist_name, album_title, thumbnail_img_url, song_urls = \
-        extractor.extract_yt_info(playlist_url)
-    path = utils.get_desktop_folder()
-    output_path = f'{path}/{album_title}'
-    os.mkdir(output_path)
-
+def process_playlist(artist_name, album_title, thumbnail_img_url, song_urls, 
+                     output_path):
     max_workers = 4
-
     with tqdm(total=len(song_urls), desc="Processing Videos", unit="video") \
             as pbar:
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) \
@@ -44,9 +30,28 @@ def main():
                 except Exception as e:
                     print(f"Error processing {song_url}: {e}")
 
+
+def main():
+    url = sys.argv[1]
+
+    if 'playlist' in url:
+        artist_name, album_title, thumbnail_img_url, song_urls = \
+            extractor.extract_playlist_info(url)
+        path = utils.get_desktop_folder()
+        output_path = Path(path) / album_title
+        os.mkdir(output_path)
+        process_playlist(artist_name, album_title, thumbnail_img_url, 
+                         song_urls, output_path)
+    else:
+        song_title, artist_name, album_name, \
+                        thumbnail_img_url = extractor.extract_song_info(url)
+        path = utils.get_desktop_folder()
+        song.process_song(url, song_title, artist_name, album_name,
+                          thumbnail_img_url, Path(path))
+        output_path = Path(f'{path}/{song_title}.mp3')
     # write the output file path
     with open("output_dir.txt", "w") as file:
-        file.write(output_path)
+        file.write(str(output_path))
 
 
 if __name__ == '__main__':
