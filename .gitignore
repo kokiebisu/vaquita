@@ -1,5 +1,4 @@
-output_dir.txt
-
 __pycache__/
 
+output_dir.txt
 process.lock
