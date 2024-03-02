@@ -1,6 +1,7 @@
-# Waved
+# Waved 🌊
 
-Waved is a project that enables downloading music from Youtube and importing it to apple music as an album with metadata included.
+Waved is a project developed for personal use that enables downloading music from Youtube and importing it to apple music as an album with metadata included.
+The creator does not take any responsibility for its usage or any potential consequences. Use this software at your own risk.
 
 ## Getting Started
 
@@ -23,7 +24,3 @@ pip install -r requirements.txt
 ```sh
 make do
 ```
-
-## Disclaimer
-
-Waved is a project developed for personal use, and the developer(s) do not take any responsibility for its usage or any potential consequences. Use this software at your own risk.
