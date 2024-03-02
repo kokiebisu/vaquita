@@ -1,19 +1,25 @@
 import concurrent.futures
 import os
+import sys
 
 from tqdm import tqdm
-from extractor import Extractor
 
-from utils import Utils
-from video import Video
+from lib import extractor, utils, video
+
+
+def get_youtube_playlist_url():
+    if len(sys.argv) < 2:
+        return input("Provide the YouTube album playlist URL: ")
+    else:
+        return sys.argv[1]
 
 
 def main():
-    playlist_url = input("Provide the Youtube album playlist URL\n")
+    playlist_url = get_youtube_playlist_url()
 
     artist_name, album_title, thumbnail_img_url, song_urls = \
-        Extractor.extract_yt_info(playlist_url)
-    path = Utils.get_desktop_folder()
+        extractor.extract_yt_info(playlist_url)
+    path = utils.get_desktop_folder()
     output_path = f'{path}/{album_title}'
     os.mkdir(output_path)
 
@@ -24,7 +30,7 @@ def main():
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) \
                 as executor:
             future_to_url = {
-                executor.submit(Video.process_video, song_url,
+                executor.submit(video.process_video, song_url,
                                 thumbnail_img_url, artist_name,
                                 album_title, output_path, pbar): song_url
                 for song_url
