@@ -1,13 +1,13 @@
 #!/bin/bash
 
 echo '''
-    _       __                     __
-| |     / /___ __   _____  ____/ /
-| | /| / / __ `/ | / / _ \/ __  / 
-| |/ |/ / /_/ /| |/ /  __/ /_/ /  
-|__/|__/\__,_/ |___/\___/\__,_/   
+                               
+   _________  ____  __  _______
+  / ___/ __ \/ __ \/ / / / ___/
+ (__  ) /_/ / / / / /_/ (__  ) 
+/____/\____/_/ /_/\__,_/____/                            
                                 
-A script to download Youtube videos to be imported into Music Libraries (e.g., Apple Music)
+A script to download Youtube playlists into albums to be imported into Apple Music.
 '''
 
 if [ -z "$PASSWORD" ]; then
