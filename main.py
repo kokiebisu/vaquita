@@ -4,10 +4,12 @@ import sys
 
 from tqdm import tqdm
 
-from lib import extractor, song, utils, video
+from lib.extractor import extract_playlist_info, extract_song_info
+from lib.processor import AudioProcessor, VideoProcessor
+from lib.utils import get_desktop_folder
 
 
-def process_playlist(artist_name, album_title, thumbnail_img_url, song_urls, 
+def process_playlist(artist_name, album_title, thumbnail_img_url, song_urls,
                      output_path):
     max_workers = 4
     with tqdm(total=len(song_urls), desc="Processing Videos", unit="video") \
@@ -15,9 +17,9 @@ def process_playlist(artist_name, album_title, thumbnail_img_url, song_urls,
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) \
                 as executor:
             future_to_url = {
-                executor.submit(video.process_video, song_url,
+                executor.submit(VideoProcessor.process, song_url,
                                 thumbnail_img_url, artist_name,
-                                album_title, output_path, pbar): song_url
+                                album_title, output_path): song_url
                 for song_url
                 in song_urls
             }
@@ -26,29 +28,26 @@ def process_playlist(artist_name, album_title, thumbnail_img_url, song_urls,
                 song_url = future_to_url[future]
                 try:
                     future.result()
+                    pbar.update(1)
                 except Exception as e:
                     print(f"Error processing {song_url}: {e}")
 
 
 def main():
     url = sys.argv[1]
-
+    path = get_desktop_folder()
     if 'playlist' in url:
         artist_name, album_title, thumbnail_img_url, song_urls = \
-            extractor.extract_playlist_info(url)
-        path = utils.get_desktop_folder()
+            extract_playlist_info(url)
         output_path = Path(path) / album_title
         process_playlist(artist_name, album_title, thumbnail_img_url, 
                          song_urls, output_path)
     else:
         song_title, artist_name, album_name, \
-                        thumbnail_img_url = extractor.extract_song_info(url)
-        path = utils.get_desktop_folder()
-        output_path = Path(path)
-        song.process_song(url, song_title, artist_name, album_name,
-                          thumbnail_img_url, output_path=output_path)
+                        thumbnail_img_url = extract_song_info(url)
+        AudioProcessor.process(url, song_title, artist_name, album_name,
+                               thumbnail_img_url, output_path=Path(path))
         output_path = Path(f'{path}/{song_title}.mp3')
-    # write the output file path
     with open("output_dir.txt", "w") as file:
         file.write(str(output_path))
 
