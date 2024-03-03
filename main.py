@@ -4,7 +4,7 @@ import sys
 
 from tqdm import tqdm
 
-from lib.extractor import extract_playlist_info, extract_song_info
+from lib.extractor import PlaylistInfoExtractor, SongInfoExtractor
 from lib.processor import AudioProcessor, VideoProcessor
 from lib.utils import get_desktop_folder
 
@@ -38,13 +38,13 @@ def main():
     path = get_desktop_folder()
     if 'playlist' in url:
         artist_name, album_title, thumbnail_img_url, song_urls = \
-            extract_playlist_info(url)
+            PlaylistInfoExtractor.extract(url)
         output_path = Path(path) / album_title
         process_playlist(artist_name, album_title, thumbnail_img_url, 
                          song_urls, output_path)
     else:
         song_title, artist_name, album_name, \
-                        thumbnail_img_url = extract_song_info(url)
+                        thumbnail_img_url = SongInfoExtractor.extract(url)
         AudioProcessor.process(url, song_title, artist_name, album_name,
                                thumbnail_img_url, output_path=Path(path))
         output_path = Path(f'{path}/{song_title}.mp3')
