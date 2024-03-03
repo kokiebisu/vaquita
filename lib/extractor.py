@@ -20,8 +20,14 @@ def extract_playlist_info(playlist_url):
                     yt_initial_data_str = match.group(1)
                     data = json.loads(yt_initial_data_str)
                     artist_name = (
-                        data['header']['playlistHeaderRenderer']
-                        ['subtitle']['simpleText'].split(' • ')[0])
+                        data['contents']['twoColumnBrowseResultsRenderer']
+                        ['tabs'][0]['tabRenderer']['content']
+                        ['sectionListRenderer']['contents'][0]
+                        ['itemSectionRenderer']['contents'][0]
+                        ['playlistVideoListRenderer']['contents'][0]
+                        ['playlistVideoRenderer']['shortBylineText']
+                        ['runs'][0]['text']
+                    )
                     album_name = (
                         data['metadata']['playlistMetadataRenderer']
                         ['albumName'])
@@ -64,7 +70,7 @@ def extract_song_info(song_url):
                     yt_initial_data_str = match.group(1)
                     data = json.loads(yt_initial_data_str)
                     data = (
-                        data['engagementPanels'][1]
+                        data['engagementPanels'][2]
                         ['engagementPanelSectionListRenderer']['content']
                         ['structuredDescriptionContentRenderer']
                         ['items'][2]['horizontalCardListRenderer']['cards'][0]

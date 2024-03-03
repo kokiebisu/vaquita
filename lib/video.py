@@ -1,5 +1,4 @@
 from pathlib import Path
-import os
 
 from pytube import YouTube
 from pydub import AudioSegment
@@ -16,11 +15,9 @@ def process_video(song_url, thumbnail_img_url, artist_name,
     try:
         video_title = download_video(video_url=song_url,
                                      artist_name=artist_name.lower(),
-                                     album_title=album_title.lower(),
                                      output_path=output_path)
-        convert_video_format(
-                            video_title=video_title,
-                            output_path=output_path)
+        convert_video_to_audio(
+            video_title=video_title, output_path=output_path)
         attach_metadata(video_title,
                         thumbnail_img_url, artist_name, album_title,
                         video_title, output_path)
@@ -30,14 +27,12 @@ def process_video(song_url, thumbnail_img_url, artist_name,
         raise e
 
 
-def download_video(video_url, artist_name, album_title, output_path='.'):
+def download_video(video_url, artist_name, output_path='.'):
     try:
         yt = YouTube(video_url)
         video_stream = yt.streams.get_highest_resolution()
-
         video_title = utils.sanitize_filename(
-            yt.title, extra_keywords=artist_name.split(' ')
-            + album_title.split(' '))
+            yt.title, extra_keywords=artist_name.lower().split(' '))
         video_stream.download(output_path, filename=f'{video_title}.mp4')
     except Exception as e:
         print(f'Error downloading video: {e}')
@@ -45,15 +40,13 @@ def download_video(video_url, artist_name, album_title, output_path='.'):
     return video_title
 
 
-def convert_video_format(video_title, output_path,
-                         input_format='mp4', output_format='mp3'):
+def convert_video_to_audio(video_title, output_path,
+                           input_format='mp4', output_format='mp3'):
     try:
-        video_title = utils.sanitize_filename_without_stuff(video_title)
         source_path = Path(output_path) / f'{video_title}.{input_format}'
         dest_path = Path(output_path) / f'{video_title}.{output_format}'
         audio = AudioSegment.from_file(source_path, format=input_format)
         audio.export(dest_path, codec=output_format)
-        os.remove(source_path)
     except Exception as e:
         print(f'Error converting video format: {e}')
         raise e

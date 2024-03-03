@@ -1,6 +1,5 @@
 from pathlib import Path
 import concurrent.futures
-import os
 import sys
 
 from tqdm import tqdm
@@ -39,15 +38,15 @@ def main():
             extractor.extract_playlist_info(url)
         path = utils.get_desktop_folder()
         output_path = Path(path) / album_title
-        os.mkdir(output_path)
         process_playlist(artist_name, album_title, thumbnail_img_url, 
                          song_urls, output_path)
     else:
         song_title, artist_name, album_name, \
                         thumbnail_img_url = extractor.extract_song_info(url)
         path = utils.get_desktop_folder()
+        output_path = Path(path)
         song.process_song(url, song_title, artist_name, album_name,
-                          thumbnail_img_url, Path(path))
+                          thumbnail_img_url, output_path=output_path)
         output_path = Path(f'{path}/{song_title}.mp3')
     # write the output file path
     with open("output_dir.txt", "w") as file:
