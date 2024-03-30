@@ -28,7 +28,7 @@ class PlaylistInfoExtractor(InfoExtractor):
                     if match:
                         yt_initial_data_str = match.group(1)
                         data = json.loads(yt_initial_data_str)
-                        artist_name = (
+                        raw_artist_name = (
                             data['contents']['twoColumnBrowseResultsRenderer']
                             ['tabs'][0]['tabRenderer']['content']
                             ['sectionListRenderer']['contents'][0]
@@ -37,10 +37,10 @@ class PlaylistInfoExtractor(InfoExtractor):
                             ['playlistVideoRenderer']['shortBylineText']
                             ['runs'][0]['text']
                         )
-                        album_name = (
+                        raw_album_name = (
                             data['metadata']['playlistMetadataRenderer']
                             ['albumName'])
-                        thumbnail_img_url = (
+                        raw_thumbnail_img_url = (
                             data['sidebar']['playlistSidebarRenderer']
                             ['items'][0]['playlistSidebarPrimaryInfoRenderer']
                             ['thumbnailRenderer']
@@ -56,7 +56,7 @@ class PlaylistInfoExtractor(InfoExtractor):
                             ['sectionListRenderer']['contents'][0]
                             ['itemSectionRenderer']['contents'][0]
                             ['playlistVideoListRenderer']['contents'])]
-                        return artist_name, album_name, thumbnail_img_url, [
+                        return raw_artist_name, raw_album_name, raw_thumbnail_img_url, [
                             f'www.youtube.com{url}' for url in song_urls]
             raise Exception("Not found")
         except Exception as e:
@@ -64,7 +64,7 @@ class PlaylistInfoExtractor(InfoExtractor):
             return None
 
 
-class SongInfoExtractor(abc.ABC):
+class SongInfoExtractor(InfoExtractor):
     @staticmethod
     def extract(video_url):
         try:
@@ -80,19 +80,27 @@ class SongInfoExtractor(abc.ABC):
                     if match:
                         yt_initial_data_str = match.group(1)
                         data = json.loads(yt_initial_data_str)
-                        data = (
-                            data['engagementPanels'][2]
-                            ['engagementPanelSectionListRenderer']['content']
-                            ['structuredDescriptionContentRenderer']
-                            ['items'][2]['horizontalCardListRenderer']['cards'][0]
-                            ['videoAttributeViewModel']
-                        )
-                        song_title = data['title']
-                        artist_name = data['subtitle']
-                        album_name = data['secondarySubtitle']['content']
-                        thumbnail_img_url = data['image']['sources'][0]['url']
-                        return song_title, artist_name, album_name, \
-                            thumbnail_img_url
+                        for panel in data.get('engagementPanels', []):
+                            if 'engagementPanelSectionListRenderer' in panel:
+                                panel_data = panel['engagementPanelSectionListRenderer']
+                                content_list = panel_data['content']
+                                if 'structuredDescriptionContentRenderer' in content_list:
+                                    item_data = content_list[
+                                        'structuredDescriptionContentRenderer']
+                                    cards = item_data.get('items', [])
+                                    for card in cards:
+                                        if 'horizontalCardListRenderer' in card:
+                                            card_data = card['horizontalCardListRenderer']
+                                            cards_in_list = card_data.get('cards', [])
+                                            for card_item in cards_in_list:
+                                                if 'videoAttributeViewModel' in card_item:
+                                                    data = card_item['videoAttributeViewModel']
+                                                    raw_song_title = data['title']
+                                                    raw_artist_name = data['subtitle']
+                                                    raw_album_name = data['secondarySubtitle']['content']
+                                                    raw_thumbnail_img_url = data['image']['sources'][0]['url']
+                                                    return raw_song_title, raw_artist_name, raw_album_name, \
+                                                        raw_thumbnail_img_url
             raise Exception("Not found")
         except Exception as e:
             print(f"Error extracting youtube info: {e}")
