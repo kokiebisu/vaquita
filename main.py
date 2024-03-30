@@ -9,21 +9,17 @@ from lib.processor import AudioProcessor, VideoProcessor
 from lib.utils import get_desktop_folder
 
 
-def process_playlist(artist_name, album_title, thumbnail_img_url, song_urls,
+def process_playlist(artist_name, album_title, thumbnail_img_url, urls,
                      output_path):
     max_workers = 4
-    with tqdm(total=len(song_urls), desc="Processing Videos", unit="video") \
+    with tqdm(total=len(urls), desc="Processing Videos", unit="video") \
             as pbar:
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) \
                 as executor:
             future_to_url = {
-                executor.submit(VideoProcessor.process, song_url,
-                                thumbnail_img_url, artist_name,
-                                album_title, output_path): song_url
-                for song_url
-                in song_urls
+                executor.submit(VideoProcessor.process, song_url, thumbnail_img_url, artist_name,
+                                album_title, output_path): song_url for song_url in urls
             }
-
             for future in concurrent.futures.as_completed(future_to_url):
                 song_url = future_to_url[future]
                 try:

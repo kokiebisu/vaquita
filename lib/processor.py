@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import abc
 
@@ -35,12 +36,13 @@ class Processor(abc.ABC):
             raise e
 
     @staticmethod
-    def _download_video(video_url, artist_name, output_path='.'):
+    def _download_video(video_url, video_title, artist_name='', output_path='.'):
         try:
             yt = YouTube(video_url)
             video_stream = yt.streams.get_highest_resolution()
-            video_title = utils.sanitize_filename(
-                yt.title, extra_keywords=artist_name.lower().split(' '))
+            if artist_name:
+                video_title = utils.sanitize_filename(
+                    yt.title, extra_keywords=artist_name.lower().split(' '))
             video_stream.download(output_path, filename=f'{video_title}.mp4')
         except Exception as e:
             print(f'Error downloading video: {e}')
@@ -61,6 +63,9 @@ class Processor(abc.ABC):
 
 
 class VideoProcessor(Processor):
+    '''
+    A class used for when processing playlists
+    '''
     @classmethod
     def process(cls, song_url, thumbnail_img_url, artist_name,
                 album_title, output_path):
@@ -70,24 +75,29 @@ class VideoProcessor(Processor):
                                               output_path=output_path)
             cls._convert_video_to_audio(
                 video_title=video_title, output_path=output_path)
-            cls._attach_metadata(video_title, thumbnail_img_url, artist_name, 
+            cls._attach_metadata(video_title, thumbnail_img_url, artist_name,
                                  album_title, video_title, output_path)
+            cls._cleanup_video_file(video_title)
         except Exception as e:
             print(f"Error processing {song_url}: {e}")
             raise e
 
 
 class AudioProcessor(Processor):
+    '''
+    A class used for when processing a single song
+    '''
     @classmethod
-    def process(cls, song_url, song_title, artist_name, album_name,
+    def process(cls, song_url, video_title, artist_name, album_name,
                 thumbnail_img_url, output_path):
         try:
             cls._download_video(video_url=song_url,
-                                artist_name=artist_name.lower(),
+                                video_title=video_title,
                                 output_path=output_path)
-            cls._convert_video_to_audio(song_title, output_path)
-            cls._attach_metadata(song_title, thumbnail_img_url, artist_name,
-                                 album_name, song_title, output_path)
+            cls._convert_video_to_audio(video_title, output_path)
+            cls._attach_metadata(video_title, thumbnail_img_url, artist_name,
+                                 album_name, video_title, output_path)
+            os.remove(Path(output_path) / f'{video_title}.mp4')
         except Exception as e:
             print(f"Error processing {song_url}: {e}")
             raise e
