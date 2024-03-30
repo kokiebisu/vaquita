@@ -57,10 +57,10 @@ class PlaylistInfoExtractor(InfoExtractor):
                             ['itemSectionRenderer']['contents'][0]
                             ['playlistVideoListRenderer']['contents'])]
                         return raw_artist_name, raw_album_name, raw_thumbnail_img_url, [
-                            f'www.youtube.com{url}' for url in song_urls]
+                            f'https://www.youtube.com{url}' for url in song_urls]
             raise Exception("Not found")
         except Exception as e:
-            print(f"Error extracting youtube info: {e}")
+            print(f"Error extracting youtube playlist info: {e}")
             return None
 
 
@@ -103,5 +103,5 @@ class SongInfoExtractor(InfoExtractor):
                                                         raw_thumbnail_img_url
             raise Exception("Not found")
         except Exception as e:
-            print(f"Error extracting youtube info: {e}")
+            print(f"Error extracting youtube song info: {e}")
             return None
