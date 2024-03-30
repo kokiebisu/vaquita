@@ -28,39 +28,24 @@ class PlaylistInfoExtractor(InfoExtractor):
                     if match:
                         yt_initial_data_str = match.group(1)
                         data = json.loads(yt_initial_data_str)
-                        raw_artist_name = (
-                            data['contents']['twoColumnBrowseResultsRenderer']
-                            ['tabs'][0]['tabRenderer']['content']
-                            ['sectionListRenderer']['contents'][0]
-                            ['itemSectionRenderer']['contents'][0]
-                            ['playlistVideoListRenderer']['contents'][0]
-                            ['playlistVideoRenderer']['shortBylineText']
-                            ['runs'][0]['text']
-                        )
-                        raw_album_name = (
+                        album_name = (
                             data['metadata']['playlistMetadataRenderer']
                             ['albumName'])
-                        raw_thumbnail_img_url = (
-                            data['sidebar']['playlistSidebarRenderer']
-                            ['items'][0]['playlistSidebarPrimaryInfoRenderer']
-                            ['thumbnailRenderer']
-                            ['playlistCustomThumbnailRenderer']
-                            ['thumbnail']['thumbnails'][-1]['url']
-                        )
-                        song_urls = [(
-                            d['playlistVideoRenderer']['navigationEndpoint']
-                            ['commandMetadata']['webCommandMetadata']['url']
-                        ) for d in (
-                            data['contents']['twoColumnBrowseResultsRenderer']
-                            ['tabs'][0]['tabRenderer']['content']
-                            ['sectionListRenderer']['contents'][0]
-                            ['itemSectionRenderer']['contents'][0]
-                            ['playlistVideoListRenderer']['contents'])]
-                        return raw_artist_name, raw_album_name, raw_thumbnail_img_url, [
-                            f'www.youtube.com{url}' for url in song_urls]
+                        song_urls = []
+                        for d in (
+                            data['contents']['twoColumnBrowseResultsRenderer']['tabs'][0][
+                                'tabRenderer']['content']['sectionListRenderer']['contents'][0][
+                                    'itemSectionRenderer']['contents'][0]['playlistVideoListRenderer'][
+                                        'contents']
+                                ):
+                            if 'playlistVideoRenderer' in d:
+                                song_urls.append(d['playlistVideoRenderer']['navigationEndpoint'][
+                                    'commandMetadata']['webCommandMetadata']['url'])
+                        return album_name, [
+                            f'https://www.youtube.com{url}' for url in song_urls]
             raise Exception("Not found")
         except Exception as e:
-            print(f"Error extracting youtube info: {e}")
+            print(f"Error extracting youtube playlist info: {e}")
             return None
 
 
@@ -103,5 +88,5 @@ class SongInfoExtractor(InfoExtractor):
                                                         raw_thumbnail_img_url
             raise Exception("Not found")
         except Exception as e:
-            print(f"Error extracting youtube info: {e}")
+            print(f"Error extracting youtube song info: {e}")
             return None

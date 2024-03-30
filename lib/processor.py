@@ -64,34 +64,13 @@ class Processor(abc.ABC):
 
 class VideoProcessor(Processor):
     '''
-    A class used for when processing playlists
-    '''
-    @classmethod
-    def process(cls, song_url, thumbnail_img_url, artist_name,
-                album_title, output_path):
-        try:
-            video_title = cls._download_video(video_url=song_url,
-                                              artist_name=artist_name.lower(),
-                                              output_path=output_path)
-            cls._convert_video_to_audio(
-                video_title=video_title, output_path=output_path)
-            cls._attach_metadata(video_title, thumbnail_img_url, artist_name,
-                                 album_title, video_title, output_path)
-            cls._cleanup_video_file(video_title)
-        except Exception as e:
-            print(f"Error processing {song_url}: {e}")
-            raise e
-
-
-class AudioProcessor(Processor):
-    '''
     A class used for when processing a single song
     '''
     @classmethod
-    def process(cls, song_url, video_title, artist_name, album_name,
+    def process(cls, url, video_title, artist_name, album_name,
                 thumbnail_img_url, output_path):
         try:
-            cls._download_video(video_url=song_url,
+            cls._download_video(video_url=url,
                                 video_title=video_title,
                                 output_path=output_path)
             cls._convert_video_to_audio(video_title, output_path)
@@ -99,5 +78,5 @@ class AudioProcessor(Processor):
                                  album_name, video_title, output_path)
             os.remove(Path(output_path) / f'{video_title}.mp4')
         except Exception as e:
-            print(f"Error processing {song_url}: {e}")
+            print(f"Error processing {url}: {e}")
             raise e
