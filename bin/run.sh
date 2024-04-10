@@ -8,16 +8,20 @@ cleanup() {
 
 trap cleanup SIGINT
 
-echo '''
-                               
-   _________  ____  __  _______
-  / ___/ __ \/ __ \/ / / / ___/
- (__  ) /_/ / / / / /_/ (__  ) 
-/____/\____/_/ /_/\__,_/____/                            
-                                
+
+cat <<'EOF'
+                                __/\ \__            
+ __  __     __       __   __  __/\_\ \ ,_\    __     
+/\ \/\ \  /'__`\   /'__`\/\ \/\ \/\ \ \ \/  /'__`\   
+\ \ \_/ |/\ \L\.\_/\ \L\ \ \ \_\ \ \ \ \ \_/\ \L\.\_ 
+ \ \___/ \ \__/.\_\ \___, \ \____/\ \_\ \__\ \__/.\_\
+  \/__/   \/__/\/_/\/___/\ \/___/  \/_/\/__/\/__/\/_/
+                        \ \_\                        
+                         \/_/                        
+                             
 This is a Daemon process that monitors the playlists.txt.
 Start adding playlist/song Youtube links in the file...
-'''
+EOF
 
 # Function to process playlists
 process_playlists() {
