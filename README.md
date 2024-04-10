@@ -1,6 +1,8 @@
-# Sonus 🌊
+# vaquita (/vəˈkiːtə/ və-KEE-tə; Phocoena sinus) 🐋
 
-Sonus is a project developed for personal use that enables downloading music from Youtube and importing it to apple music as an album with metadata included.
+# Project Overview
+
+vaquita is a project developed for personal use that enables downloading music from Youtube and importing it to apple music as an album with metadata included.
 
 The creator does not take any responsibility for its usage or any potential consequences. Use this software at your own risk.
 
