@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 
 class InfoExtractor(abc.ABC):
-    @abc.abstractstaticmethod
+    @abc.abstractmethod
     def extract(video_url):
         pass
 
@@ -50,8 +50,8 @@ class PlaylistInfoExtractor(InfoExtractor):
 
 
 class SongInfoExtractor(InfoExtractor):
-    @staticmethod
-    def extract(video_url):
+    @classmethod
+    def extract(cls, video_url):
         try:
             response = requests.get(video_url)
             response.raise_for_status()
@@ -75,18 +75,30 @@ class SongInfoExtractor(InfoExtractor):
                                     cards = item_data.get('items', [])
                                     for card in cards:
                                         if 'horizontalCardListRenderer' in card:
-                                            card_data = card['horizontalCardListRenderer']
-                                            cards_in_list = card_data.get('cards', [])
-                                            for card_item in cards_in_list:
-                                                if 'videoAttributeViewModel' in card_item:
-                                                    data = card_item['videoAttributeViewModel']
-                                                    raw_song_title = data['title']
-                                                    raw_artist_name = data['subtitle']
-                                                    raw_album_name = data['secondarySubtitle']['content']
-                                                    raw_thumbnail_img_url = data['image']['sources'][0]['url']
-                                                    return raw_song_title, raw_artist_name, raw_album_name, \
-                                                        raw_thumbnail_img_url
+                                            return cls._extract_song(card)
+                                        if 'videoDescriptionHeaderRenderer' in card:
+                                            return cls._extract_video(card, video_url)
+                                        raise Exception('Data cannot be extracted')
             raise Exception("Not found")
         except Exception as e:
             print(f"Error extracting youtube song info: {e}")
             return None
+
+    def _extract_song(card):
+        card_data = card['horizontalCardListRenderer']
+        cards_in_list = card_data.get('cards', [])
+        for card_item in cards_in_list:
+            if 'videoAttributeViewModel' in card_item:
+                data = card_item['videoAttributeViewModel']
+                song_title = data['title']
+                artist_name = data['subtitle']
+                album_name = data['secondarySubtitle']['content']
+                cover_img_url = data['image']['sources'][0]['url']
+                return song_title, artist_name, album_name, cover_img_url
+
+    def _extract_video(card, video_url):
+        card_data = card['videoDescriptionHeaderRenderer']
+        song_title = card_data['title']['runs'][0]['text']
+        artist_name = card_data['channel']['simpleText']
+        album_name = song_title
+        return song_title, artist_name, album_name, video_url

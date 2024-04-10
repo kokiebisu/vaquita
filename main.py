@@ -42,6 +42,7 @@ def main():
     else:
         song_title, artist_name, album_name, \
                         thumbnail_img_url = SongInfoExtractor.extract(url)
+        song_title = song_title.replace('/', '-')
         VideoProcessor.process(url, song_title, artist_name, album_name,
                                thumbnail_img_url, output_path=Path(path))
         output_path = Path(f'{path}/{song_title}.mp3')
