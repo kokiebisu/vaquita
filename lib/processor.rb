@@ -36,7 +36,7 @@ end
 
 class VideoProcessor include Processor
   def self.process(url, video_title, artist_name, album_name, thumbnail_img_url, output_path)
-    output_path = output_path
+    output_path = output_path.is_a?(Hash) ? output_path[:output_path] : output_path
     album_name = album_name["content"]
     begin
       video_title = download_video(url, video_title, artist_name, output_path)
@@ -94,7 +94,6 @@ def attach_metadata(video_title, cover_img_path, artist_name, album_title, title
     TagLib::MPEG::File.open("#{output_path}/#{video_title}.mp3") do |file|
       tag = file.id3v2_tag
 
-      # Attach image
       cover = TagLib::ID3v2::AttachedPictureFrame.new
       cover.mime_type = cover_img_path.end_with?('.gif') ? "image/gif" : "image/jpeg"
       cover.picture = File.open(cover_img_path, 'rb').read

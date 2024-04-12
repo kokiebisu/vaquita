@@ -20,21 +20,6 @@ def process_song(url, base_path)
     end
 end
 
-# def process_playlist(urls, base_path)
-#     max_workers = 4
-#     pool = Concurrent::FixedThreadPool.new(max_workers)
-#     futures = urls.map do |url|
-#       Concurrent::Future.execute(executor: pool) { process_song(url, base_path) }
-#     end
-
-#     Tqdm::ProgressBar.wrap(futures, desc: "Processing Videos", total: urls.length, unit: 'video') do |future|
-#       result = future.value!
-#     end
-
-#     pool.shutdown
-#     pool.wait_for_termination
-# end
-
 def process_playlist(urls, base_path)
   max_workers = 4
   pool = Concurrent::FixedThreadPool.new(max_workers)
@@ -43,12 +28,11 @@ def process_playlist(urls, base_path)
   futures = urls.map do |url|
     Concurrent::Future.execute(executor: pool) do
       result = process_song(url, base_path)
-      progressbar.increment  # Update the progress bar after each task completes
+      progressbar.increment
       result
     end
   end
 
-  # Wait for all futures to complete
   futures.each(&:value!)
 
   pool.shutdown
@@ -67,7 +51,8 @@ def main
     else
       song_title, artist_name, album_name, thumbnail_img_url = SongInfoExtractor.extract(url)
       song_title = song_title.tr('/', '-')
-      VideoProcessor.process(url, song_title, artist_name, album_name, thumbnail_img_url, output_path: Pathname.new(path)[:output_path])
+      output_path = Pathname.new(path)
+      VideoProcessor.process(url, song_title, artist_name, album_name, thumbnail_img_url, output_path: output_path)
       output_path = Pathname.new("#{path}/#{song_title}.mp3")
     end
     File.open("output_dir.txt", "w") { |file| file.write(output_path.to_s) }
