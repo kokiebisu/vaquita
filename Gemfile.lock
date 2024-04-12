@@ -1,7 +1,6 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    date (3.3.4)
     e2mmap (0.1.0)
     fileutils (1.7.2)
     mini_magick (4.12.0)
@@ -12,24 +11,14 @@ GEM
       racc (~> 1.4)
     nokogiri (1.16.4-arm64-darwin)
       racc (~> 1.4)
-    open-uri (0.4.1)
-      stringio
-      time
-      uri
-    open3 (0.2.1)
     pathname (0.3.0)
     racc (1.7.3)
     ruby-progressbar (1.13.0)
     streamio-ffmpeg (3.0.2)
       multi_json (~> 1.8)
-    stringio (3.1.0)
     taglib-ruby (1.1.3)
     thwait (0.2.0)
       e2mmap
-    time (0.3.0)
-      date
-    tqdm (0.4.1)
-    uri (0.13.0)
 
 PLATFORMS
   arm64-darwin-23
@@ -39,14 +28,11 @@ DEPENDENCIES
   fileutils
   mini_magick
   nokogiri
-  open-uri
-  open3
   pathname
   ruby-progressbar
   streamio-ffmpeg
   taglib-ruby
   thwait
-  tqdm
 
 BUNDLED WITH
    2.5.8

@@ -1,8 +1,8 @@
 # vaquita (/vəˈkiːtə/ və-KEE-tə; Phocoena sinus) 🐋
 
-# Project Overview
+## Project Overview
 
-vaquita is a project developed for personal use that enables downloading music from Youtube and importing it to apple music as an album with metadata included.
+vaquita is a project developed for personal use that enables downloading music from YouTube and importing it to Apple Music as an album with metadata included.
 
 The creator does not take any responsibility for its usage or any potential consequences. Use this software at your own risk.
 
@@ -10,20 +10,12 @@ The creator does not take any responsibility for its usage or any potential cons
 
 ### Prerequisites
 
-Make sure to configure your laptop login password before using.
+- **Ruby**: Ensure you have Ruby v3.3.0 installed. If not, you can install it using [rbenv](https://github.com/rbenv/rbenv) or [rvm](https://rvm.io/).
+- **Homebrew**: Some dependencies need to be installed via Homebrew. Make sure Homebrew is installed on your system. If not, install it by following the instructions on the [Homebrew website](https://brew.sh/).
+
+Before using, configure your laptop login password:
 
 ```sh
 export PASSWORD=XXXXXXXXXX
 ```
 
-### Installation
-
-```sh
-pip install -r requirements.txt
-```
-
-### Usage
-
-```sh
-make run
-```
