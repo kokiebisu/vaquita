@@ -22,34 +22,38 @@ def process_playlist(playlist_url, base_path)
   output_path = Pathname.new("#{base_path}/#{album_name}")
   FileUtils.mkdir(output_path)
 
-  max_workers = 4
-  pool = Concurrent::FixedThreadPool.new(max_workers)
   progressbar = ProgressBar.create(title: "Processing Playlist", total: song_urls.length, format: '%a |%b>>%i| %p%% %t')
 
-  futures = song_urls.map do |song_url|
-    Concurrent::Future.execute(executor: pool) do
-      result = process_song(song_url, output_path)
-      progressbar.increment
-      result
-    end
+  song_urls.each do |song_url|
+    result = process_song(song_url, output_path)
+    progressbar.increment
   end
 
-  futures.each(&:value!)
-
-  pool.shutdown
-  pool.wait_for_termination
   progressbar.finish
-
   return output_path
 end
 
 def process_release(release_url, base_path)
   artist_name, playlist_urls = ReleasesExtractor.extract(release_url)
   output_path = Pathname.new("#{base_path}/#{artist_name}")
-  FileUtils.mkdir(output_path)
+  FileUtils.mkdir_p(output_path)
+
+  max_threads = 4
+  pool = Concurrent::FixedThreadPool.new(max_threads)
+
   playlist_urls.each do |playlist_url|
-    process_playlist(playlist_url, output_path)
+    pool.post do
+      begin
+        process_playlist(playlist_url, output_path)
+      rescue => e
+        puts "Error in processing playlist: #{playlist_url}, Error: #{e}"
+      end
+    end
   end
+
+  pool.shutdown
+  pool.wait_for_termination
+
   return output_path
 end
 

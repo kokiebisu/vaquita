@@ -23,16 +23,18 @@ module Processor
 
     def download_video(video_url, video_title, artist_name='', output_path='.')
       begin
-        escaped_video_title = escape_for_shell(video_title)
-        output_file_pattern = "#{output_path}/#{escaped_video_title}.%(ext)s"
-        command = "yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]' -o '#{output_file_pattern}' #{video_url} > /dev/null 2>&1"
-        stdout, stderr, status = Open3.capture3(command)
+        output_file_pattern = File.join(output_path, "#{video_title}.%(ext)s")
+        command = ["yt-dlp", "-f", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]", "-o", output_file_pattern, video_url]
+        stdout, stderr, status = Open3.capture3(*command)
 
-        unless status.success?
+        if !status.success?
+          puts "Command failed with status: #{status.exitstatus}"
+          puts "STDOUT: #{stdout}"
+          puts "STDERR: #{stderr}"
           raise "Failed to download video: #{stderr}"
         end
 
-        video_title
+        return "#{video_title}"
       rescue => e
         puts "Error downloading video: #{e}"
         raise e
@@ -43,9 +45,13 @@ end
 
 class VideoProcessor include Processor
   def self.process(url, video_title, artist_name, album_name, thumbnail_img_url, output_path)
-    output_path = output_path.is_a?(Hash) ? output_path[:output_path] : output_path
-    album_name = album_name.key?('content') ? album_name['content'] : album_name
     begin
+      output_path = output_path.is_a?(Hash) ? output_path[:output_path] : output_path
+      if album_name
+        album_name.is_a?(String) ? album_name : album_name['content']
+      else
+        album_name = video_title
+      end
       video_title = download_video(url, video_title, artist_name, output_path)
       convert_video_to_audio(video_title, output_path)
       cover_img_path = download_image(thumbnail_img_url, "#{output_path}/cover.jpg")
@@ -107,7 +113,7 @@ def attach_metadata(video_title, cover_img_path, artist_name, album_title, title
       cover.type = TagLib::ID3v2::AttachedPictureFrame::FrontCover
       tag.add_frame(cover)
       tag.artist = artist_name.encode("UTF-8")
-      tag.album = album_title.encode("UTF-8")
+      tag.album = album_title.is_a?(Hash) ? album_title["content"] : album_title.encode("UTF-8")
       tag.title = title.encode("UTF-8")
       file.save
     end
