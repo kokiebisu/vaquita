@@ -17,7 +17,8 @@ module Processor
 
     def download_video(video_url, video_title, artist_name='', output_path='.')
       begin
-        output_file_pattern = "#{output_path}/#{video_title}.%(ext)s"
+        escaped_video_title = video_title.gsub("'", "\\\\'")
+        output_file_pattern = "#{output_path}/#{escaped_video_title}.%(ext)s"
         command = "yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]' -o '#{output_file_pattern}' #{video_url} > /dev/null 2>&1"
         stdout, stderr, status = Open3.capture3(command)
 
@@ -37,7 +38,7 @@ end
 class VideoProcessor include Processor
   def self.process(url, video_title, artist_name, album_name, thumbnail_img_url, output_path)
     output_path = output_path.is_a?(Hash) ? output_path[:output_path] : output_path
-    album_name = album_name["content"]
+    album_name = album_name.key?('content') ? album_name['content'] : album_name
     begin
       video_title = download_video(url, video_title, artist_name, output_path)
       convert_video_to_audio(video_title, output_path)
