@@ -15,9 +15,15 @@ module Processor
       raise NotImplementedError, "You must implement the process method in #{self.name}"
     end
 
+    def escape_for_shell(video_title)
+      parts = video_title.split("'")
+      escaped_title = parts.join("'\\''")
+      escaped_title
+    end
+
     def download_video(video_url, video_title, artist_name='', output_path='.')
       begin
-        escaped_video_title = video_title.gsub("'", "\\\\'")
+        escaped_video_title = escape_for_shell(video_title)
         output_file_pattern = "#{output_path}/#{escaped_video_title}.%(ext)s"
         command = "yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]' -o '#{output_file_pattern}' #{video_url} > /dev/null 2>&1"
         stdout, stderr, status = Open3.capture3(command)
