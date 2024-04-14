@@ -49,7 +49,7 @@ class PlaylistInfoExtractor extend InfoExtractor
         if match
           yt_initial_data = JSON.parse(match[1])
           album_name = yt_initial_data.dig('metadata', 'playlistMetadataRenderer', 'albumName')
-          song_urls = yt_initial_data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 0, 'tabRenderer', 'content', 'sectionListRenderer', 'contents', 0, 'itemSectionRenderer', 'contents', 0, 'playlistVideoListRenderer', 'contents').select { |content| content.key?('playlistVideoRenderer') }.map { |vid| "https://www.youtube.com" + vid.dig('playlistVideoRenderer', 'navigationEndpoint', 'commandMetadata', 'webCommandMetadata', 'url') }
+          song_urls = yt_initial_data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 0, 'tabRenderer', 'content', 'sectionListRenderer', 'contents', 0, 'itemSectionRenderer', 'contents', 0, 'playlistVideoListRenderer', 'contents').select { |content| content.key?('playlistVideoRenderer') }.map { |vid| "https://www.youtube.com/watch?v=" + vid.dig('playlistVideoRenderer', 'navigationEndpoint', 'watchEndpoint', 'videoId') }
           return album_name, song_urls
         end
       end
