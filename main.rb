@@ -20,12 +20,10 @@ def process_playlist(playlist_url, base_path, progressbar=nil)
   album_name, song_urls = PlaylistInfoExtractor.extract(playlist_url)
   output_path = Pathname.new("#{base_path}/#{album_name}")
   FileUtils.mkdir(output_path)
-
   progressbar ||= ProgressBar.create(title: "Processing Playlist", total: song_urls.length, format: '%a |%b>>%i| %p%% %t')
   song_urls.each do |song_url|
     result = process_song(song_url, output_path, progressbar)
   end
-
   progressbar.finish unless progressbar.finished?
   return output_path
 end
@@ -34,9 +32,7 @@ def process_release(release_url, base_path)
   artist_name, playlist_urls = ReleasesExtractor.extract(release_url)
   output_path = Pathname.new("#{base_path}/#{artist_name}")
   FileUtils.mkdir_p(output_path)
-
   progressbar = ProgressBar.create(title: "Processing Release", total: playlist_urls.length, format: '%a |%b>>%i| %p%% %t')
-
   max_threads = 4
   pool = Concurrent::FixedThreadPool.new(max_threads)
   playlist_urls.each do |playlist_url|
@@ -48,7 +44,6 @@ def process_release(release_url, base_path)
       end
     end
   end
-
   pool.shutdown
   pool.wait_for_termination
   progressbar.finish

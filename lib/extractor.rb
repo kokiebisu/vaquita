@@ -23,7 +23,6 @@ class ReleasesExtractor extend InfoExtractor
         if match
           yt_initial_data = JSON.parse(match[1])
           artist_name = yt_initial_data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 4, 'tabRenderer', 'content', 'richGridRenderer', 'contents', 0, 'richItemRenderer', 'content', 'playlistRenderer', 'shortBylineText', 'runs', 0, 'text')
-
           releases = yt_initial_data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 4, 'tabRenderer', 'content', 'richGridRenderer', 'contents')
           playlist_ids = releases.map do |release|
             if release.dig('richItemRenderer')
@@ -42,7 +41,6 @@ class PlaylistInfoExtractor extend InfoExtractor
     uri = URI(url)
     response = Net::HTTP.get_response(uri)
     raise "HTTP Error: #{response.code}" unless response.is_a?(Net::HTTPSuccess)
-
     soup = Nokogiri::HTML(response.body.force_encoding('UTF-8'))
     script_tags = soup.css('script')
     script_tags.each do |script_tag|
@@ -69,7 +67,6 @@ class SongInfoExtractor extend InfoExtractor
     uri = URI(url)
     response = Net::HTTP.get_response(uri)
     raise "HTTP ERROR: #{response.code}" unless response.is_a?(Net::HTTPSuccess)
-
     soup = Nokogiri::HTML(response.body.force_encoding('UTF-8'))
     script_tags = soup.css('script')
     script_tags.each do |script_tag|

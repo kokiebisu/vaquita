@@ -28,14 +28,12 @@ module Processor
         output_file_pattern = File.join(output_path, "#{video_title}.%(ext)s")
         command = ["yt-dlp", "-f", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]", "-o", output_file_pattern, video_url]
         stdout, stderr, status = Open3.capture3(*command)
-
         if !status.success?
           puts "Command failed with status: #{status.exitstatus}"
           puts "STDOUT: #{stdout}"
           puts "STDERR: #{stderr}"
           raise "Failed to download video: #{stderr}"
         end
-
         return "#{video_title}"
       rescue => e
         puts "Error downloading video: #{e}"
@@ -71,9 +69,7 @@ def convert_video_to_audio(video_title, output_path, input_format='mp4', output_
   begin
     source_path = File.join(output_path, "#{video_title}.#{input_format}")
     dest_path = File.join(output_path, "#{video_title}.#{output_format}")
-
     movie = FFMPEG::Movie.new(source_path)
-
     movie.transcode(dest_path, %W(-vn -acodec libmp3lame -q:a 2))
   rescue StandardError => e
     puts "Error converting video format: #{e}"
@@ -108,7 +104,6 @@ def attach_metadata(video_title, cover_img_path, artist_name, album_title, title
   begin
     TagLib::MPEG::File.open("#{output_path}/#{video_title}.mp3") do |file|
       tag = file.id3v2_tag
-
       cover = TagLib::ID3v2::AttachedPictureFrame.new
       cover.mime_type = cover_img_path.end_with?('.gif') ? "image/gif" : "image/jpeg"
       cover.picture = File.open(cover_img_path, 'rb').read
