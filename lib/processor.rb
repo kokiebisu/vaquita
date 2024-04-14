@@ -5,6 +5,8 @@ require 'taglib'
 require 'open3'
 require 'streamio-ffmpeg'
 
+FFMPEG.logger.level = Logger::ERROR
+
 module Processor
   def self.included(base)
     base.extend(ClassMethods)
