@@ -4,8 +4,6 @@
 
 vaquita is a project developed for personal use that enables downloading music from YouTube and importing it to Apple Music as an album with metadata included.
 
-The creator does not take any responsibility for its usage or any potential consequences. Use this software at your own risk.
-
 ## Getting Started
 
 ### Prerequisites
@@ -19,3 +17,14 @@ Before using, configure your laptop login password:
 export PASSWORD=XXXXXXXXXX
 ```
 
+## Usage
+
+You can run the daemon process which listens to any changes in playlists.txt. Paste the url and it should pick up.
+
+```sh
+make run
+```
+
+## Notes
+
+The creator does not take any responsibility for its usage or any potential consequences. Use this software at your own risk.
