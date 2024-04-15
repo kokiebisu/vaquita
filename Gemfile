@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-git_source(:github) {|repo_name| "https://github.com/kokiebisu/vaquitabundle" }
+git_source(:github) {|repo_name| "https://github.com/kokiebisu/#{repo_name}" }
 
 gem 'pathname'
 gem 'thwait'
