@@ -1,6 +1,12 @@
+PATH
+  remote: ../tarsier
+  specs:
+    tarsier (0.1.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
+    concurrent-ruby (1.2.3)
     e2mmap (0.1.0)
     fileutils (1.7.2)
     mini_magick (4.12.0)
@@ -25,6 +31,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  concurrent-ruby
   fileutils
   mini_magick
   nokogiri
@@ -32,6 +39,7 @@ DEPENDENCIES
   ruby-progressbar
   streamio-ffmpeg
   taglib-ruby
+  tarsier!
   thwait
 
 BUNDLED WITH

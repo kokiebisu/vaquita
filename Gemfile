@@ -12,3 +12,7 @@ gem 'mini_magick'
 gem 'taglib-ruby'
 gem 'streamio-ffmpeg'
 gem 'ruby-progressbar'
+gem 'concurrent-ruby'
+
+# Local
+gem 'tarsier', path: '../tarsier'
