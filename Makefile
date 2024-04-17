@@ -1,3 +1,6 @@
+start-server:
+	ruby app.rb
+
 run-daemon:
 	./bin/run.sh
 

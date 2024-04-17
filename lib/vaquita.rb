@@ -21,7 +21,7 @@ OptionParser.new do |opts|
 end.parse!
 
 def read_cookie_json()
-  json = File.read('cookie.json')
+  json = File.read('credentials.json')
   data = JSON.parse(json)
   data['cookie']
 end
@@ -78,6 +78,20 @@ def process_release(release_url, base_path)
   return output_path
 end
 
+def process_url(url)
+  path = Utils.get_desktop_folder
+  if url.include?('releases')
+    output_path = process_release(url, path)
+  elsif url.include?('playlist')
+    output_path = process_playlist(url, path)
+  else
+    progressbar = ProgressBar.create(title: "Processing Song", total: 1, format: '%a |%b>>%i| %p%% %t')
+    output_path = process_song(url, path, progressbar)
+    progressbar.finish
+  end
+  return output_path
+end
+
 def main(options)
   if options[:type] == 'recommendation'
     path = Utils.get_desktop_folder
@@ -86,16 +100,7 @@ def main(options)
     output_path = process_recommendation(cookie, path)
   elsif options[:type] == 'url'
     url = ARGV[0]  # Expect the first ARGV entry to be the URL
-    path = Utils.get_desktop_folder
-    if url.include?('releases')
-      output_path = process_release(url, path)
-    elsif url.include?('playlist')
-      output_path = process_playlist(url, path)
-    else
-      progressbar = ProgressBar.create(title: "Processing Song", total: 1, format: '%a |%b>>%i| %p%% %t')
-      output_path = process_song(url, path, progressbar)
-      progressbar.finish
-    end
+    output_path = process_url(url)
   else
     raise ArgumentError, "Please specify --type with 'url' or 'recommendation'"
   end

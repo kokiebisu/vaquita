@@ -13,6 +13,8 @@ gem 'taglib-ruby'
 gem 'streamio-ffmpeg'
 gem 'ruby-progressbar'
 gem 'concurrent-ruby'
+gem 'sinatra'
+gem "rackup", "~> 2.1"
 
 # Local
 gem 'tarsier', path: '../tarsier'
