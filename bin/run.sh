@@ -43,7 +43,7 @@ process_playlists() {
     echo "$PLAYLIST_URL"
 
     echo -e "\033[0;32mRunning script with link: $PLAYLIST_URL\033[0m"
-    ruby main.rb "$PLAYLIST_URL"
+    ruby main.rb lib/vaquita.rb "$PLAYLIST_URL"
 
     RESOURCE_PATH=$(cat output_dir.txt)
     echo -e "\033[0;36mRunning import_to_apple_music.sh...\033[0m"

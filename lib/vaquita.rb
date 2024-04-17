@@ -1,11 +1,39 @@
+require 'bundler/setup'
+require 'tarsier'
+
 require 'concurrent'
 require 'fileutils'
 require 'pathname'
 require 'ruby-progressbar'
+require 'tarsier'
+require 'optparse'
 
-require_relative 'lib/extractor'
-require_relative 'lib/processor'
-require_relative 'lib/utils'
+require_relative 'vaquita/extractor'
+require_relative 'vaquita/processor'
+require_relative 'vaquita/utils'
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: ruby lib/vaquita.rb --type [url|recommendation] [URL|COOKIE_VALUE]"
+  opts.on("--type TYPE", ["url", "recommendation"], "Specify 'url' for URLs or 'recommendation' for recommendations") do |type|
+    options[:type] = type
+  end
+end.parse!
+
+def read_cookie_json()
+  json = File.read('cookie.json')
+  data = JSON.parse(json)
+  data['cookie']
+end
+
+def process_recommendation(cookie_value, path)
+  urls = Tarsier.extract_recommendation_music_links(cookie_value)
+  progressbar = ProgressBar.create(title: "Processing Song", total: urls.length, format: '%a |%b>>%i| %p%% %t')
+  urls.each do |url|
+    process_song(url, path, progressbar)
+  end
+  progressbar.finish unless progressbar.finished?
+end
 
 def process_song(song_url, base_path, progressbar)
   song_title, artist_name, album_name, thumbnail_img_url = SongInfoExtractor.extract(song_url)
@@ -50,20 +78,29 @@ def process_release(release_url, base_path)
   return output_path
 end
 
-def main
-  url = ARGV[0]
-  path = Utils.get_desktop_folder
-  progressbar = nil
-  if url.include?('releases')
-    output_path = process_release(url, path)
-  elsif url.include?('playlist')
-    output_path = process_playlist(url, path)
+def main(options)
+  if options[:type] == 'recommendation'
+    path = Utils.get_desktop_folder
+    cookie = read_cookie_json()
+    path = Utils.get_desktop_folder
+    output_path = process_recommendation(cookie, path)
+  elsif options[:type] == 'url'
+    url = ARGV[0]  # Expect the first ARGV entry to be the URL
+    path = Utils.get_desktop_folder
+    if url.include?('releases')
+      output_path = process_release(url, path)
+    elsif url.include?('playlist')
+      output_path = process_playlist(url, path)
+    else
+      progressbar = ProgressBar.create(title: "Processing Song", total: 1, format: '%a |%b>>%i| %p%% %t')
+      output_path = process_song(url, path, progressbar)
+      progressbar.finish
+    end
   else
-    progressbar = ProgressBar.create(title: "Processing Song", total: 1, format: '%a |%b>>%i| %p%% %t')
-    output_path = process_song(url, path, progressbar)
-    progressbar.finish
+    raise ArgumentError, "Please specify --type with 'url' or 'recommendation'"
   end
+
   File.open("output_dir.txt", "w") { |file| file.write(output_path.to_s) }
 end
 
-main if __FILE__ == $PROGRAM_NAME
+main(options) if __FILE__ == $PROGRAM_NAME
