@@ -2,7 +2,7 @@ start-server:
 	ruby app.rb
 
 run-daemon:
-	./bin/run.sh
+	./bin/daemon.sh
 
 get-recommended:
 	ruby lib/vaquita.rb --type recommendation
