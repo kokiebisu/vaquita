@@ -7,7 +7,7 @@ if [ -z "$PLAYLIST_URL" ]; then
     exit 1
 fi
 
-ruby ./lib/vaquita.rb --type url "$PLAYLIST_URL"
+ruby ./lib/vaquita.rb --type music-playlist "$PLAYLIST_URL"
 
 RESOURCE_PATH=$(cat output_dir.txt)
 PASSWORD=$(jq -r '.password' ./credentials.json)

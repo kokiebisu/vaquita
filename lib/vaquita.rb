@@ -15,7 +15,7 @@ require_relative 'vaquita/utils'
 options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: ruby lib/vaquita.rb --type [url|recommendation] [URL|COOKIE_VALUE]"
-  opts.on("--type TYPE", ["url", "recommendation"], "Specify 'url' for URLs or 'recommendation' for recommendations") do |type|
+  opts.on("--type TYPE", ["url", "music-playlist", "recommendation"], "Specify 'url' for URLs or 'recommendation' for recommendations") do |type|
     options[:type] = type
   end
 end.parse!
@@ -27,7 +27,16 @@ def read_cookie_json()
 end
 
 def process_recommendation(cookie_value, path)
-  urls = Tarsier.extract_recommendation_music_links(cookie_value)
+  urls = Tarsier.extract_recommendations(cookie_value)
+  progressbar = ProgressBar.create(title: "Processing Song", total: urls.length, format: '%a |%b>>%i| %p%% %t')
+  urls.each do |url|
+    process_song(url, path, progressbar)
+  end
+  progressbar.finish unless progressbar.finished?
+end
+
+def process_music_playlist(cookie_value, url, path)
+  urls = Tarsier.extract_playlist(cookie_value, url)
   progressbar = ProgressBar.create(title: "Processing Song", total: urls.length, format: '%a |%b>>%i| %p%% %t')
   urls.each do |url|
     process_song(url, path, progressbar)
@@ -98,8 +107,14 @@ def main(options)
     cookie = read_cookie_json()
     path = Utils.get_desktop_folder
     output_path = process_recommendation(cookie, path)
+  elsif options[:type] == 'music-playlist'
+    url = ARGV[0]
+    path = Utils.get_desktop_folder
+    cookie = read_cookie_json()
+    path = Utils.get_desktop_folder
+    output_path = process_music_playlist(cookie, url, path)
   elsif options[:type] == 'url'
-    url = ARGV[0]  # Expect the first ARGV entry to be the URL
+    url = ARGV[0]
     output_path = process_url(url)
   else
     raise ArgumentError, "Please specify --type with 'url' or 'recommendation'"

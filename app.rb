@@ -1,4 +1,5 @@
 require 'sinatra'
+
 require './lib/vaquita'
 
 before do
@@ -12,10 +13,21 @@ end
 post '/process' do
   data = JSON.parse(request.body.read)
   url = data['url']
-  stdout, stderr, status = Open3.capture3("./process.sh #{url}")
-  if status.success?
-    stdout
-  else
-    "Error: #{stderr}"
+  command = data['command']
+  puts url, command
+  if command == 'url'
+    stdout, stderr, status = system("./process.sh #{url}")
+    if status.success?
+      stdout
+    else
+      "Error: #{stderr}"
+    end
+  elsif command == 'playlist'
+    stdout, stderr, status = system("./process_playlist.sh #{url}")
+    if status.success?
+      stdout
+    else
+      "Error: #{stderr}"
+    end
   end
 end
