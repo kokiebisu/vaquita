@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Vaquita",
+  "version": "1.0",
+  "description": "Sends urls via requests to the local running server",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["http://localhost/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "icons/icon.png"
+  },
+  "icons": {
+    "16": "icons/icon.png",
+    "48": "icons/icon.png",
+    "128": "icons/icon.png"
+  }
+}
