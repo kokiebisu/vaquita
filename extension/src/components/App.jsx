@@ -1,6 +1,8 @@
 import React from "react";
 import { useState, useEffect } from "react";
 
+import Spinner from "./Spinner";
+
 const urlTypes = {
   YOUTUBE_PLAYLIST: "YOUTUBE_PLAYLIST",
   YOUTUBE_SONG: "YOUTUBE_SONG",
@@ -107,7 +109,7 @@ const App = () => {
       case urlTypes.YOUTUBE_SONG:
         return "Process this song";
       default:
-        return "Make sure you are on a youtube playlist/song url!";
+        return null;
     }
   };
 
@@ -129,10 +131,13 @@ const App = () => {
       <div className="text-xl font-bold">Youtube Downloader</div>
       {getDisplayMessage(urlType) !== null ? (
         isLoading ? (
-          <div>Loading....</div>
+          <div>
+            <Spinner />
+          </div>
         ) : (
           <button
             type="button"
+            disabled={isRecommendationsLoading || isTrendingLoading}
             className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
             onClick={() => getProcessMethod(urlType)}
           >
@@ -140,13 +145,16 @@ const App = () => {
           </button>
         )
       ) : (
-        <div>Make sure you are on a youtube url</div>
+        <div>Make sure you are on a youtube playlist/song url!</div>
       )}
       {isRecommendationsLoading ? (
-        <div>Loading...</div>
+        <div>
+          <Spinner />
+        </div>
       ) : (
         <button
           type="button"
+          disabled={isLoading || isTrendingLoading}
           className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
           onClick={onProcessRecommendations}
         >
@@ -154,10 +162,13 @@ const App = () => {
         </button>
       )}
       {isTrendingLoading ? (
-        <div>Loading...</div>
+        <div>
+          <Spinner />
+        </div>
       ) : (
         <button
           type="button"
+          disabled={isLoading || isRecommendationsLoading}
           className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
           onClick={onProcessTrending}
         >
