@@ -1,6 +1,6 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 
+import CommandButton from "./CommandButton";
 import Spinner from "./Spinner";
 
 const urlTypes = {
@@ -10,13 +10,27 @@ const urlTypes = {
   YOUTUBE_MUSIC_SONG: "YOUTUBE_MUSIC_SONG",
 };
 
+const initialState = {
+  isLoading: false,
+  isRecommendationsLoading: false,
+  isTrendingLoading: false,
+};
+
+function reducer(state, action) {
+  switch (action.type) {
+    case "START_LOAD":
+      return { ...state, [action.payload]: true };
+    case "STOP_LOAD":
+      return { ...state, [action.payload]: false };
+    default:
+      return state;
+  }
+}
+
 const App = () => {
   const [currentUrl, setCurrentUrl] = useState(null);
   const [urlType, setUrlType] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isRecommendationsLoading, setIsRecommendationsLoading] =
-    useState(false);
-  const [isTrendingLoading, setIsTrendingLoading] = useState(false);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -30,58 +44,11 @@ const App = () => {
     }
   }, [currentUrl]);
 
-  const onProcessUrl = () => {
-    setIsLoading(true);
-    chrome.runtime.sendMessage(
-      {
-        command: "url",
-        url: currentUrl,
-      },
-      function (response) {
-        console.log(response);
-        setIsLoading(false);
-      }
-    );
-  };
-
-  const onProcessRecommendations = () => {
-    setIsLoading(true);
-    chrome.runtime.sendMessage(
-      {
-        command: "recommendations",
-      },
-      function (response) {
-        console.log(response);
-        setIsLoading(false);
-      }
-    );
-  };
-
-  const onProcessTrending = () => {
-    setIsLoading(true);
-    chrome.runtime.sendMessage(
-      {
-        command: "trending",
-      },
-      function (response) {
-        console.log(response);
-        setIsLoading(false);
-      }
-    );
-  };
-
-  const onProcessMusicPlaylist = () => {
-    setIsLoading(true);
-    chrome.runtime.sendMessage(
-      {
-        command: "playlist",
-        url: currentUrl,
-      },
-      function (response) {
-        console.log(response);
-        setIsLoading(false);
-      }
-    );
+  const handleCommand = (command, key) => {
+    dispatch({ type: "START_LOAD", payload: key });
+    chrome.runtime.sendMessage({ command, url: currentUrl }, (response) => {
+      dispatch({ type: "STOP_LOAD", payload: key });
+    });
   };
 
   const classifyUrl = (url) => {
@@ -97,84 +64,62 @@ const App = () => {
     return "Unknown Type";
   };
 
-  const getDisplayMessage = (urlType) => {
-    console.log("URL TYPE: ", urlType);
+  const getDisplayMessage = () => {
     switch (urlType) {
       case urlTypes.YOUTUBE_MUSIC_PLAYLIST:
-        return "Process this playlist";
-      case urlTypes.YOUTUBE_MUSIC_SONG:
-        return "Process this song";
       case urlTypes.YOUTUBE_PLAYLIST:
         return "Process this playlist";
+      case urlTypes.YOUTUBE_MUSIC_SONG:
       case urlTypes.YOUTUBE_SONG:
         return "Process this song";
       default:
-        return null;
+        return "Make sure you are on a youtube playlist/song url!";
     }
   };
 
-  const getProcessMethod = (urlType) => {
+  const getProcessMethod = () => {
     switch (urlType) {
       case urlTypes.YOUTUBE_MUSIC_PLAYLIST:
-        return onProcessMusicPlaylist();
-      case urlTypes.YOUTUBE_MUSIC_SONG:
-        return onProcessMusicSong();
       case urlTypes.YOUTUBE_PLAYLIST:
-        return onProcessUrl();
+        return () => handleCommand("playlist", "isLoading");
+      case urlTypes.YOUTUBE_MUSIC_SONG:
       case urlTypes.YOUTUBE_SONG:
-        return onProcessUrl();
+        return () => handleCommand("song", "isLoading");
+      default:
+        return null;
     }
   };
 
   return (
     <div className="w-64 h-64 p-4 space-y-3">
       <div className="text-xl font-bold">Youtube Downloader</div>
-      {getDisplayMessage(urlType) !== null ? (
-        isLoading ? (
-          <div>
-            <Spinner />
-          </div>
+      {urlType &&
+        (state.isLoading ? (
+          <Spinner />
         ) : (
           <button
             type="button"
-            disabled={isRecommendationsLoading || isTrendingLoading}
+            disabled={state.isRecommendationsLoading || state.isTrendingLoading}
             className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
-            onClick={() => getProcessMethod(urlType)}
+            onClick={getProcessMethod()}
           >
-            {getDisplayMessage(urlType)}
+            {getDisplayMessage()}
           </button>
-        )
-      ) : (
-        <div>Make sure you are on a youtube playlist/song url!</div>
-      )}
-      {isRecommendationsLoading ? (
-        <div>
-          <Spinner />
-        </div>
-      ) : (
-        <button
-          type="button"
-          disabled={isLoading || isTrendingLoading}
-          className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
-          onClick={onProcessRecommendations}
-        >
-          Recommendations
-        </button>
-      )}
-      {isTrendingLoading ? (
-        <div>
-          <Spinner />
-        </div>
-      ) : (
-        <button
-          type="button"
-          disabled={isLoading || isRecommendationsLoading}
-          className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
-          onClick={onProcessTrending}
-        >
-          Trending
-        </button>
-      )}
+        ))}
+      <CommandButton
+        label="Recommendations"
+        loadingState={state.isRecommendationsLoading}
+        disabledStates={[state.isLoading, state.isTrendingLoading]}
+        onClick={() =>
+          handleCommand("recommendations", "isRecommendationsLoading")
+        }
+      />
+      <CommandButton
+        label="Trending"
+        loadingState={state.isTrendingLoading}
+        disabledStates={[state.isLoading, state.isRecommendationsLoading]}
+        onClick={() => handleCommand("trending", "isTrendingLoading")}
+      />
     </div>
   );
 };
