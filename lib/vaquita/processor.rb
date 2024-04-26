@@ -24,7 +24,7 @@ module Processor
     end
 
     def download_video(video_url, video_title, artist_name='', output_path='.')
-      puts "Started download process..."
+      puts "Started download process with #{video_url} #{video_title} #{artist_name} #{output_path}..."
       output_file_pattern = File.join(output_path, "#{video_title}.%(ext)s")
       command = "yt-dlp -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4] -o #{output_file_pattern.shellescape} #{video_url.shellescape}"
 
@@ -41,6 +41,7 @@ end
 
 class VideoProcessor include Processor
   def self.process(url, video_title, artist_name, album_name, thumbnail_img_url, output_path)
+    puts "Started processing the url with #{url} #{video_title} #{artist_name} #{album_name} #{thumbnail_img_url} #{output_path}"
     begin
       output_path = output_path.is_a?(Hash) ? output_path[:output_path] : output_path
       if album_name

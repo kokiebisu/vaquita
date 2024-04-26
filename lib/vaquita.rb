@@ -49,12 +49,17 @@ def process_music_playlist(cookie_value, url, path)
 end
 
 def process_song(song_url, base_path, progressbar)
-  song_title, artist_name, album_name, thumbnail_img_url = SongInfoExtractor.extract(song_url)
-  song_title = song_title.tr('/', '-') if song_title
-  VideoProcessor.process(song_url, song_title, artist_name, album_name, thumbnail_img_url, output_path: base_path)
-  output_path = Pathname.new("#{base_path}/#{song_title}.mp3")
-  progressbar.increment
-  return output_path
+  begin
+    song_title, artist_name, album_name, thumbnail_img_url = SongInfoExtractor.extract(song_url)
+    puts "Extracted song info: #{song_title} #{artist_name} #{album_name} #{thumbnail_img_url}"
+    song_title = song_title.tr('/', '-') if song_title
+    VideoProcessor.process(song_url, song_title, artist_name, album_name, thumbnail_img_url, output_path: base_path)
+    output_path = Pathname.new("#{base_path}/#{song_title}.mp3")
+    progressbar.increment
+    return output_path
+  rescue => e
+    puts "Error processing song #{e}"
+  end
 end
 
 def process_playlist(playlist_url, base_path, progressbar=nil)
