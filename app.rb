@@ -12,6 +12,5 @@ post '/process' do
   type = data['type']
 
   script = type == 'url' ? "./process.sh" : "./process_playlist.sh"
-  puts "#{script} #{url}"
   system("#{script} #{url}")
 end

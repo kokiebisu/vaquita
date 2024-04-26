@@ -29,19 +29,23 @@ end
 def process_recommendation(cookie_value, path)
   urls = Tarsier.extract_recommendations(cookie_value)
   progressbar = ProgressBar.create(title: "Processing Song", total: urls.length, format: '%a |%b>>%i| %p%% %t')
+  output_path = Pathname.new("#{path}/recommendations")
   urls.each do |url|
     process_song(url, path, progressbar)
   end
   progressbar.finish unless progressbar.finished?
+  return output_path
 end
 
 def process_music_playlist(cookie_value, url, path)
-  urls = Tarsier.extract_playlist(cookie_value, url)
+  cover_img_url, playlist_name, urls = Tarsier.extract_playlist(cookie_value, url)
+  output_path = Pathname.new("#{path}/#{playlist_name}")
   progressbar = ProgressBar.create(title: "Processing Song", total: urls.length, format: '%a |%b>>%i| %p%% %t')
   urls.each do |url|
-    process_song(url, path, progressbar)
+    process_song(url, output_path, progressbar)
   end
   progressbar.finish unless progressbar.finished?
+  return output_path
 end
 
 def process_song(song_url, base_path, progressbar)

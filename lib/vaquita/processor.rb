@@ -24,20 +24,16 @@ module Processor
     end
 
     def download_video(video_url, video_title, artist_name='', output_path='.')
-      begin
-        output_file_pattern = File.join(output_path, "#{video_title}.%(ext)s")
-        command = ["yt-dlp", "-f", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]", "-o", output_file_pattern, video_url]
-        stdout, stderr, status = Open3.capture3(*command)
-        if !status.success?
-          puts "Command failed with status: #{status.exitstatus}"
-          puts "STDOUT: #{stdout}"
-          puts "STDERR: #{stderr}"
-          raise "Failed to download video: #{stderr}"
-        end
-        return "#{video_title}"
-      rescue => e
-        puts "Error downloading video: #{e}"
-        raise e
+      puts "Started download process..."
+      output_file_pattern = File.join(output_path, "#{video_title}.%(ext)s")
+      command = "yt-dlp -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4] -o #{output_file_pattern.shellescape} #{video_url.shellescape}"
+
+      if system(command)
+        puts "Download successful for #{video_title}"
+        return video_title
+      else
+        puts "Download failed for #{video_title}"
+        raise "Failed to execute download command."
       end
     end
   end
