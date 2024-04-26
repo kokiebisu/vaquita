@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Running script to process by url"
+echo "Running script to process by url..."
 
 URL="$1"
 
@@ -13,10 +13,10 @@ ruby ./lib/vaquita.rb --type url "$URL"
 
 RESOURCE_PATH=$(cat output_dir.txt)
 
-if [ -z "$RESOURCE_PATH" ]; then[
+if [ -z "$RESOURCE_PATH" ]; then
     echo "Resource path is not specified"
     exit 1
-]
+fi
 
 PASSWORD=$(jq -r '.password' ./credentials.json)
 
@@ -29,6 +29,7 @@ export PASSWORD=$PASSWORD
 echo -e "\033[0;36mRunning import_to_apple_music.sh...\033[0m"
 
 echo "$PASSWORD" | sudo -S osascript -e 'tell application "Music" to add POSIX file "'"$RESOURCE_PATH"'"'
+
 rm "$RESOURCE_PATH"
 
 rm -rf "output_dir.txt"
