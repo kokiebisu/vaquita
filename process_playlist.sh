@@ -29,8 +29,9 @@ export PASSWORD=$PASSWORD
 
 echo -e "\033[0;36mRunning import_to_apple_music.sh...\033[0m"
 
-echo "$PASSWORD" | sudo -S osascript -e 'tell application "Music" to add POSIX file "'"$RESOURCE_PATH"'"'
+RESOURCE_PATH_ESCAPED=$(printf "%q" "$RESOURCE_PATH")
 
-rm "$RESOURCE_PATH"
+echo "$PASSWORD" | sudo -S osascript music_script.applescript "$RESOURCE_PATH"
 
-rm -rf "output_dir.txt"
+rm -rf "$RESOURCE_PATH"
+rm "output_dir.txt"
