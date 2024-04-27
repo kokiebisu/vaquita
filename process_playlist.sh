@@ -11,8 +11,10 @@ fi
 
 ruby ./lib/vaquita.rb --type music-playlist "$PLAYLIST_URL"
 
-# Retrieve the resource path from output_dir.txt
-RESOURCE_PATH=$(cat output_dir.txt)
+# Retrieve the resource path from resource_path.txt
+RESOURCE_PATH=$(cat resource_path.txt)
+PLAYLIST_NAME_PATH=$(cat playlist_name_path.txt)
+PLAYLIST_COVER_IMG_URL_PATH=$(cat playlist_cover_img_url_path.txt)
 
 if [ -z "$RESOURCE_PATH" ]; then
     echo "Resource path is not specified"
@@ -31,7 +33,6 @@ echo -e "\033[0;36mRunning import_to_apple_music.sh...\033[0m"
 
 RESOURCE_PATH_ESCAPED=$(printf "%q" "$RESOURCE_PATH")
 
-echo "$PASSWORD" | sudo -S osascript music_script.applescript "$RESOURCE_PATH"
+echo "$PASSWORD" | sudo -S osascript music_script.applescript "$RESOURCE_PATH" "$PLAYLIST_NAME_PATH" "$PLAYLIST_COVER_IMG_URL_PATH"
 
-rm -rf "$RESOURCE_PATH"
-rm "output_dir.txt"
+# rm -rf "$RESOURCE_PATH"

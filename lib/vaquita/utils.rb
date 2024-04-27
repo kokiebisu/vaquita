@@ -31,4 +31,17 @@ module Utils
       !keywords_to_exclude.any? { |keyword| word.downcase.include?(keyword) }
     end
   end
+
+  def self.download_image(image_url, destination_path)
+    begin
+      URI.open(image_url) do |image|
+        File.open(destination_path, 'wb') do |file|
+          file.write(image.read)
+        end
+      end
+      puts "Image downloaded successfully to #{destination_path}"
+    rescue StandardError => e
+      puts "Failed to download image: #{e.message}"
+    end
+  end
 end

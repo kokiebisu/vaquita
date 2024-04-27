@@ -39,13 +39,18 @@ end
 
 def process_music_playlist(cookie_value, url, path)
   cover_img_url, playlist_name, urls = Tarsier.extract_playlist(cookie_value, url)
+  # download the cover_img_url to cover_img_path
   output_path = Pathname.new("#{path}/#{playlist_name}")
   progressbar = ProgressBar.create(title: "Processing Song", total: urls.length, format: '%a |%b>>%i| %p%% %t')
   urls.each do |url|
     process_song(url, output_path, progressbar)
   end
   progressbar.finish unless progressbar.finished?
-  return output_path
+  cover_img_path = Pathname.new("#{path}/#{playlist_name}/playlist_cover.jpg")
+  # Download the cover image to the specified path
+  Utils.download_image(cover_img_url, cover_img_path)
+  puts "COVER IMAGE PATH: #{cover_img_path}"
+  return cover_img_path, playlist_name, output_path
 end
 
 def process_song(song_url, base_path, progressbar)
@@ -116,20 +121,23 @@ def main(options)
     cookie = read_cookie_json()
     path = Utils.get_desktop_folder
     output_path = process_recommendation(cookie, path)
+    File.open("output_dir.txt", "w") { |file| file.write(output_path.to_s) }
   elsif options[:type] == 'music-playlist'
     url = ARGV[0]
     path = Utils.get_desktop_folder
     cookie = read_cookie_json()
     path = Utils.get_desktop_folder
-    output_path = process_music_playlist(cookie, url, path)
+    cover_img_url, playlist_name, output_path = process_music_playlist(cookie, url, path)
+    File.open("playlist_name_path.txt", "w") { |file| file.write(playlist_name.to_s) }
+    File.open("playlist_cover_img_url_path.txt", "w") { |file| file.write(cover_img_url.to_s) }
+    File.open("resource_path.txt", "w") { |file| file.write(output_path.to_s) }
   elsif options[:type] == 'url'
     url = ARGV[0]
     output_path = process_url(url)
+    File.open("output_dir.txt", "w") { |file| file.write(output_path.to_s) }
   else
     raise ArgumentError, "Please specify --type with 'url' or 'recommendation'"
   end
-
-  File.open("output_dir.txt", "w") { |file| file.write(output_path.to_s) }
 end
 
 main(options) if __FILE__ == $PROGRAM_NAME
