@@ -34,12 +34,13 @@ def process_recommendation(cookie_value, path)
     process_song(url, path, progressbar)
   end
   progressbar.finish unless progressbar.finished?
-  return output_path
+  {
+    outputPath: output_path.to_s
+  }
 end
 
 def process_music_playlist(cookie_value, url, path)
   cover_img_url, playlist_name, urls = Tarsier.extract_playlist(cookie_value, url)
-  # download the cover_img_url to cover_img_path
   output_path = Pathname.new("#{path}/#{playlist_name}")
   progressbar = ProgressBar.create(title: "Processing Song", total: urls.length, format: '%a |%b>>%i| %p%% %t')
   urls.each do |url|
@@ -49,8 +50,11 @@ def process_music_playlist(cookie_value, url, path)
   cover_img_path = Pathname.new("#{path}/#{playlist_name}/playlist_cover.jpg")
   # Download the cover image to the specified path
   Utils.download_image(cover_img_url, cover_img_path)
-  puts "COVER IMAGE PATH: #{cover_img_path}"
-  return cover_img_path, playlist_name, output_path
+  {
+    coverImgPath: cover_img_path.to_s,
+    playlistName: playlist_name,
+    outputPath: output_path.to_s
+  }
 end
 
 def process_song(song_url, base_path, progressbar)
@@ -61,7 +65,7 @@ def process_song(song_url, base_path, progressbar)
     VideoProcessor.process(song_url, song_title, artist_name, album_name, thumbnail_img_url, output_path: base_path)
     output_path = Pathname.new("#{base_path}/#{song_title}.mp3")
     progressbar.increment
-    return output_path
+    output_path
   rescue => e
     puts "Error processing song #{e}"
   end
@@ -73,7 +77,7 @@ def process_playlist(playlist_url, base_path, progressbar=nil)
   FileUtils.mkdir(output_path)
   progressbar ||= ProgressBar.create(title: "Processing Playlist", total: song_urls.length, format: '%a |%b>>%i| %p%% %t')
   song_urls.each do |song_url|
-    result = process_song(song_url, output_path, progressbar)
+    process_song(song_url, output_path, progressbar)
   end
   progressbar.finish unless progressbar.finished?
   return output_path
@@ -112,7 +116,9 @@ def process_url(url)
     output_path = process_song(url, path, progressbar)
     progressbar.finish
   end
-  return output_path
+  {
+    outputPath: output_path.to_s
+  }
 end
 
 def main(options)
@@ -120,24 +126,20 @@ def main(options)
     path = Utils.get_desktop_folder
     cookie = read_cookie_json()
     path = Utils.get_desktop_folder
-    output_path = process_recommendation(cookie, path)
-    File.open("output_dir.txt", "w") { |file| file.write(output_path.to_s) }
+    result_data = process_recommendation(cookie, path)
   elsif options[:type] == 'music-playlist'
     url = ARGV[0]
     path = Utils.get_desktop_folder
     cookie = read_cookie_json()
     path = Utils.get_desktop_folder
-    cover_img_url, playlist_name, output_path = process_music_playlist(cookie, url, path)
-    File.open("playlist_name_path.txt", "w") { |file| file.write(playlist_name.to_s) }
-    File.open("playlist_cover_img_url_path.txt", "w") { |file| file.write(cover_img_url.to_s) }
-    File.open("resource_path.txt", "w") { |file| file.write(output_path.to_s) }
+    result_data = process_music_playlist(cookie, url, path)
   elsif options[:type] == 'url'
     url = ARGV[0]
-    output_path = process_url(url)
-    File.open("output_dir.txt", "w") { |file| file.write(output_path.to_s) }
+    result_data = process_url(url)
   else
     raise ArgumentError, "Please specify --type with 'url' or 'recommendation'"
   end
+  Utils.write_to_json_file(result_data)
 end
 
 main(options) if __FILE__ == $PROGRAM_NAME

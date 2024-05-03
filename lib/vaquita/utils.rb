@@ -44,4 +44,10 @@ module Utils
       puts "Failed to download image: #{e.message}"
     end
   end
+
+  def self.write_to_json_file(data)
+    File.open("output.json", "w") do |file|
+      file.write(JSON.pretty_generate(data))
+    end
+  end
 end

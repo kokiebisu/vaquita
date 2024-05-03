@@ -11,14 +11,11 @@ fi
 
 ruby ./lib/vaquita.rb --type music-playlist "$PLAYLIST_URL"
 
-# Retrieve the resource path from resource_path.txt
-RESOURCE_PATH=$(cat resource_path.txt)
-PLAYLIST_NAME_PATH=$(cat playlist_name_path.txt)
-PLAYLIST_COVER_IMG_URL_PATH=$(cat playlist_cover_img_url_path.txt)
+RESOURCE_PATH=$(jq '.outputPath' output.json | tr -d '"')
+PLAYLIST_NAME_PATH=$(jq '.playlistName' output.json | tr -d '"')
+COVER_IMG_PATH=$(jq .'coverImgPath' output.json | tr -d '"')
 
-truncate -s 0 playlist_cover_img_url_path.txt
-truncate -s 0 playlist_name_path.txt
-truncate -s 0 resource_path.txt
+echo '{}' > output.json
 
 if [ -z "$RESOURCE_PATH" ]; then
     echo "Resource path is not specified"
@@ -35,6 +32,6 @@ export PASSWORD=$PASSWORD
 
 echo -e "\033[0;36mRunning import_to_apple_music.sh...\033[0m"
 
-RESOURCE_PATH_ESCAPED=$(printf "%q" "$RESOURCE_PATH")
+echo "$RESOURCE_PATH" "$PLAYLIST_NAME_PATH" "$COVER_IMG_PATH"
 
-echo "$PASSWORD" | sudo -S osascript music_script.applescript "$RESOURCE_PATH" "$PLAYLIST_NAME_PATH" "$PLAYLIST_COVER_IMG_URL_PATH"
+echo "$PASSWORD" | sudo -S osascript music_script.applescript "$RESOURCE_PATH" "$PLAYLIST_NAME_PATH" "$COVER_IMG_PATH"

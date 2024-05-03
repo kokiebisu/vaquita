@@ -11,7 +11,9 @@ fi
 
 ruby ./lib/vaquita.rb --type url "$URL"
 
-RESOURCE_PATH=$(cat output_dir.txt)
+RESOURCE_PATH=$(jq .'outputPath' output.json | tr -d '"')
+
+echo '{}' > output.json
 
 if [ -z "$RESOURCE_PATH" ]; then
     echo "Resource path is not specified"
