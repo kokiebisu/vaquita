@@ -20,11 +20,6 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-def read_cookie_json()
-  json = File.read('credentials.json')
-  data = JSON.parse(json)
-  data['cookie']
-end
 
 def process_recommendation(cookie_value, path)
   urls = Tarsier.extract_recommendations(cookie_value)
@@ -122,22 +117,20 @@ def process_url(url)
 end
 
 def main(options)
-  if options[:type] == 'recommendation'
+  if ['recommendation', 'music-playlist'].include?(options[:type])
+    cookie = Utils.read_cookie_json
     path = Utils.get_desktop_folder
-    cookie = read_cookie_json()
-    path = Utils.get_desktop_folder
-    result_data = process_recommendation(cookie, path)
-  elsif options[:type] == 'music-playlist'
-    url = ARGV[0]
-    path = Utils.get_desktop_folder
-    cookie = read_cookie_json()
-    path = Utils.get_desktop_folder
-    result_data = process_music_playlist(cookie, url, path)
+    if options[:type] == 'music-playlist'
+      url = ARGV[0]
+      result_data = process_music_playlist(cookie, url, path)
+    elsif options[:type] == 'recommendation'
+      result_data = process_recommendation(cookie, path)
+    end
   elsif options[:type] == 'url'
     url = ARGV[0]
     result_data = process_url(url)
   else
-    raise ArgumentError, "Please specify --type with 'url' or 'recommendation'"
+    raise ArgumentError, "Please specify --type with 'url', 'music-playlist' or 'recommendation'"
   end
   Utils.write_to_json_file(result_data)
 end

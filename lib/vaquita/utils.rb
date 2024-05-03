@@ -17,6 +17,7 @@ module Utils
       else
         sanitized_words = excluded_keywords.split.map(&:strip).map(&:capitalize)
       end
+      sanitized_words
     rescue => e
       puts "Error sanitizing filename: #{e}"
       raise e
@@ -30,6 +31,7 @@ module Utils
     result = filename.split.select do |word|
       !keywords_to_exclude.any? { |keyword| word.downcase.include?(keyword) }
     end
+    result
   end
 
   def self.download_image(image_url, destination_path)
@@ -49,5 +51,11 @@ module Utils
     File.open("output.json", "w") do |file|
       file.write(JSON.pretty_generate(data))
     end
+  end
+
+  def self.read_cookie_json()
+    json = File.read('credentials.json')
+    data = JSON.parse(json)
+    data['cookie']
   end
 end
