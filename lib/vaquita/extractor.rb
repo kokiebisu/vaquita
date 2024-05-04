@@ -21,7 +21,7 @@ class ReleasesExtractor extend InfoExtractor
       if script_tag.content.include?('ytInitialData')
         match = script_tag.content.match(/var\s+ytInitialData\s*=\s*(\{.*?\});/)
         if match
-          yt_initial_data = JSON.parse(match[1])
+          yt_initial_data = Utils.parse_json_with_escaped_chars(match[1])
           artist_name = yt_initial_data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 4, 'tabRenderer', 'content', 'richGridRenderer', 'contents', 0, 'richItemRenderer', 'content', 'playlistRenderer', 'shortBylineText', 'runs', 0, 'text')
           releases = yt_initial_data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 4, 'tabRenderer', 'content', 'richGridRenderer', 'contents')
           playlist_ids = releases.map do |release|
@@ -47,7 +47,7 @@ class PlaylistInfoExtractor extend InfoExtractor
       if script_tag.content.include?('ytInitialData')
         match = script_tag.content.match(/var\s+ytInitialData\s*=\s*(\{.*?\});/)
         if match
-          yt_initial_data = JSON.parse(match[1])
+          yt_initial_data = Utils.parse_json_with_escaped_chars(match[1])
           album_name = yt_initial_data.dig('metadata', 'playlistMetadataRenderer', 'albumName')
           song_urls = yt_initial_data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 0, 'tabRenderer', 'content', 'sectionListRenderer', 'contents', 0, 'itemSectionRenderer', 'contents', 0, 'playlistVideoListRenderer', 'contents').select { |content| content.key?('playlistVideoRenderer') }.map { |vid| "https://www.youtube.com/watch?v=" + vid.dig('playlistVideoRenderer', 'navigationEndpoint', 'watchEndpoint', 'videoId') }
           return album_name, song_urls
@@ -73,7 +73,7 @@ class SongInfoExtractor extend InfoExtractor
       if script_tag.content.include?('ytInitialData')
         match = script_tag.content.match(/var\s+ytInitialData\s*=\s*(\{.*?\});/)
         if match
-          yt_initial_data = JSON.parse(match[1])
+          yt_initial_data = Utils.parse_json_with_escaped_chars(match[1])
           yt_initial_data['engagementPanels'].each do |panel|
 
             if panel['engagementPanelSectionListRenderer']

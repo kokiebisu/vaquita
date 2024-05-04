@@ -58,4 +58,15 @@ module Utils
     data = JSON.parse(json)
     data['cookie']
   end
+
+  def self.parse_json_with_escaped_chars(json_string)
+    begin
+      cleaned_string = json_string.gsub('\\\\', '\\')
+      parsed_string = cleaned_string.encode('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
+      JSON.parse(parsed_string)
+    rescue JSON::ParserError => e
+      puts "Error parsing JSON: #{e.message}"
+      nil
+    end
+  end
 end
