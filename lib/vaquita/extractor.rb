@@ -8,29 +8,35 @@ module InfoExtractor
   end
 end
 
-class ReleasesExtractor extend InfoExtractor
-  def self.extract(url)
-    playlist_ids = []
+
+class YoutubeScraper
+  def initialize(url)
     uri = URI(url)
     response = Net::HTTP.get_response(uri)
     raise "HTTP Error: #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+    @doc = Nokogiri::HTML(response.body.force_encoding('UTF-8'))
+    get_initial_data
+  end
 
-    soup = Nokogiri::HTML(response.body.force_encoding('UTF-8'))
-    script_tags = soup.css('script')
+  def scrape_release
+    artist_name = @data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 4, 'tabRenderer', 'content', 'richGridRenderer', 'contents', 0, 'richItemRenderer', 'content', 'playlistRenderer', 'shortBylineText', 'runs', 0, 'text')
+    releases = @data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 4, 'tabRenderer', 'content', 'richGridRenderer', 'contents')
+    playlist_ids = releases.map do |release|
+      if release.dig('richItemRenderer')
+        "https://www.youtube.com/playlist?list=" + release.dig('richItemRenderer', 'content', 'playlistRenderer', 'playlistId')
+      end
+    end.compact
+    return artist_name, playlist_ids
+  end
+
+  private
+
+  def get_initial_data
+    script_tags = @doc.css('script')
     script_tags.each do |script_tag|
-      if script_tag.content.include?('ytInitialData')
-        match = script_tag.content.match(/var\s+ytInitialData\s*=\s*(\{.*?\});/)
-        if match
-          yt_initial_data = Utils.parse_json_with_escaped_chars(match[1])
-          artist_name = yt_initial_data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 4, 'tabRenderer', 'content', 'richGridRenderer', 'contents', 0, 'richItemRenderer', 'content', 'playlistRenderer', 'shortBylineText', 'runs', 0, 'text')
-          releases = yt_initial_data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 4, 'tabRenderer', 'content', 'richGridRenderer', 'contents')
-          playlist_ids = releases.map do |release|
-            if release.dig('richItemRenderer')
-              "https://www.youtube.com/playlist?list=" + release.dig('richItemRenderer', 'content', 'playlistRenderer', 'playlistId')
-            end
-          end.compact
-          return artist_name, playlist_ids
-        end
+      match = script_tag.content.match(/var\s+ytInitialData\s*=\s*(\{.*?\});/)
+      if match
+        @data = Utils.parse_json_with_escaped_chars(match[1])
       end
     end
   end

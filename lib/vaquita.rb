@@ -78,7 +78,7 @@ def process_playlist(playlist_url, base_path, progressbar=nil)
 end
 
 def process_release(release_url, base_path)
-  artist_name, playlist_urls = ReleasesExtractor.extract(release_url)
+  artist_name, playlist_urls = YoutubeScraper.new(release_url).scrape_release
   output_path = Pathname.new("#{base_path}/#{artist_name}")
   FileUtils.mkdir_p(output_path)
   progressbar = ProgressBar.create(title: "Processing Release", total: playlist_urls.length, format: '%a |%b>>%i| %p%% %t')
