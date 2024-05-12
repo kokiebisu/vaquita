@@ -65,6 +65,15 @@ module Utils
       parsed_string = cleaned_string.encode('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
       JSON.parse(parsed_string)
     rescue JSON::ParserError => e
+      puts "Error parsing JSON with escaped chars: #{e.message}"
+      nil
+    end
+  end
+
+  def self.parse_json(json_string)
+    begin
+      return JSON.parse(json_string)
+    rescue JSON::ParserError => e
       puts "Error parsing JSON: #{e.message}"
       nil
     end
