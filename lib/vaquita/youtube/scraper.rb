@@ -14,6 +14,22 @@ class YoutubeScraper
     @data = get_initial_data
   end
 
+  def scrape_videos
+    video_items = @data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 1, 'tabRenderer', 'content', 'richGridRenderer', 'contents')
+    urls = video_items.map do |item|
+      video_id = item.dig('richItemRenderer', 'content', 'videoRenderer', 'videoId')
+      if video_id
+        "https://www.youtube.com/watch?v=#{video_id}"
+      end
+    end
+    channel_name = @data.dig('metadata', 'channelMetadataRenderer', 'title')
+    return channel_name, urls
+  end
+
+  def scrape_video
+    @data.dig('engagementPanels', 1, 'engagementPanelSectionListRenderer', 'content', 'structuredDescriptionContentRenderer', 'items', 0, 'videoDescriptionHeaderRenderer', 'title', 'runs', 0, 'text')
+  end
+
   def scrape_releases
     artist_name = @data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 4, 'tabRenderer', 'content', 'richGridRenderer', 'contents', 0, 'richItemRenderer', 'content', 'playlistRenderer', 'shortBylineText', 'runs', 0, 'text')
     releases = @data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 4, 'tabRenderer', 'content', 'richGridRenderer', 'contents')
@@ -27,10 +43,11 @@ class YoutubeScraper
     puts "Error scraping the release: #{e}"
   end
 
-  def scrape_playlist
-    album_name = @data.dig('metadata', 'playlistMetadataRenderer', 'albumName')
-    song_urls = @data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 0, 'tabRenderer', 'content', 'sectionListRenderer', 'contents', 0, 'itemSectionRenderer', 'contents', 0, 'playlistVideoListRenderer', 'contents').select { |content| content.key?('playlistVideoRenderer') }.map { |vid| "https://www.youtube.com/watch?v=" + vid.dig('playlistVideoRenderer', 'navigationEndpoint', 'watchEndpoint', 'videoId') }
-    return album_name, song_urls
+  def scrape_playlist(output_mode)
+    metadata = @data.dig('metadata', 'playlistMetadataRenderer')
+    playlist_name = metadata.dig(output_mode == 'music' ? 'albumName' : 'title')
+    urls = @data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 0, 'tabRenderer', 'content', 'sectionListRenderer', 'contents', 0, 'itemSectionRenderer', 'contents', 0, 'playlistVideoListRenderer', 'contents').select { |content| content.key?('playlistVideoRenderer') }.map { |vid| "https://www.youtube.com/watch?v=" + vid.dig('playlistVideoRenderer', 'navigationEndpoint', 'watchEndpoint', 'videoId') }
+    return playlist_name, urls
   rescue => e
     puts "Error scraping the playlist: #{e}"
   end

@@ -17,7 +17,9 @@ OptionParser.new do |opts|
   opts.on("--type TYPE", ["url", "music-playlist", "recommendation"], "Specify 'url' for URLs or 'recommendation' for recommendations") do |type|
     options[:type] = type
   end
-  opts.on("--output TYPE", ["video", "music"], "Specify 'url' for videos")
+  opts.on("--output TYPE", ["video", "music"], "Specify 'url' for videos") do |output|
+    options[:output] = output
+  end
 end.parse!
 
 def main(options)
@@ -32,11 +34,7 @@ def main(options)
     end
   elsif options[:type] == 'url'
       url = ARGV[0]
-    if options[':output'] == 'music'
-      result_data = process_url(url)
-    else
-      result_data = process_video_url(url)
-    end
+      result_data = process_url(url, options[:output])
   else
     raise ArgumentError, "Please specify --type with 'url', 'music-playlist' or 'recommendation'"
   end
