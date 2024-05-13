@@ -22,25 +22,11 @@ module Processor
       escaped_title = parts.join("'\\''")
       escaped_title
     end
-
-    def download_video(video_url, video_title, output_path='.')
-      puts "Started download process with #{video_url} #{video_title} #{output_path}..."
-      output_file_pattern = File.join(output_path, "#{video_title}.%(ext)s")
-      command = "yt-dlp -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4] -o #{output_file_pattern.shellescape} #{video_url.shellescape}"
-
-      if system(command)
-        puts "Download successful for #{video_title}"
-        return video_title
-      else
-        puts "Download failed for #{video_title}"
-        raise "Failed to execute download command."
-      end
-    end
   end
 end
 
-class VideoProcessor include Processor
-  def self.retrieve_song(url, video_title, artist_name, album_name, thumbnail_img_url, output_path)
+class MusicProcessor include Processor
+  def self.retrieve(url, video_title, artist_name, album_name, thumbnail_img_url, output_path)
     puts "Started processing the url with #{url} #{video_title} #{artist_name} #{album_name} #{thumbnail_img_url} #{output_path}"
     begin
       output_path = output_path.is_a?(Hash) ? output_path[:output_path] : output_path
@@ -61,14 +47,74 @@ class VideoProcessor include Processor
     end
   end
 
-  def self.retrieve_video(url, video_title, output_path)
+  def self.download_video(video_url, video_title, output_path='.')
+    puts "Started download process with #{video_url} #{video_title} #{output_path}..."
+    output_file_pattern = File.join(output_path, "#{video_title}.%(ext)s")
+    command = "yt-dlp --user-agent \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36\" -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4] -o #{output_file_pattern.shellescape} #{video_url.shellescape}"
+
+    if system(command)
+      puts "Download successful for #{video_title}"
+      return video_title
+    else
+      puts "Download failed for #{video_title}"
+      raise "Failed to execute download command."
+    end
+  end
+end
+
+class VideoProcessor include Processor
+  def self.retrieve(url, video_title, output_path)
     puts "Started processing the url with #{url} #{video_title} #{output_path}"
     begin
-      download_video(url, video_title, output_path)
+      video_title, file_extension = download_video(url, video_title, output_path)
+      convert_to_mp4("#{output_path}/#{video_title}.#{file_extension}", "#{output_path}/#{video_title}.mp4")
+      File.delete("#{output_path}/#{video_title}.#{file_extension}")
     rescue => e
       puts "Error processing #{url}: #{e}"
       raise e
     end
+  end
+
+  def self.download_video(video_url, video_title, output_path='.')
+    puts "Started download process with #{video_url} #{video_title} #{output_path}..."
+    output_file_pattern = File.join(output_path, "#{video_title}.%(ext)s")
+    command = "yt-dlp -f bestvideo+bestaudio/best -o #{output_file_pattern.shellescape} #{video_url.shellescape}"
+
+    if system(command)
+      downloaded_files = Dir.glob("#{output_path}/#{video_title}.*")
+      unless downloaded_files.empty?
+        file_extension = File.extname(downloaded_files.first).delete_prefix('.')
+        puts "Download successful for #{video_title} with extension #{file_extension}"
+        return video_title, file_extension
+      else
+        puts "Download successful but no file found."
+        return video_title, nil
+      end
+    else
+      puts "Download failed for #{video_title}"
+      raise "Failed to execute download command."
+    end
+  end
+
+  def self.convert_to_mp4(input_file, output_file)
+    puts "Converting"
+    movie = FFMPEG::Movie.new(input_file)
+
+    options = {
+      video_codec: "libx264",
+      audio_codec: "aac",
+      custom: %w(-strict experimental)
+    }
+
+    puts "Converting #{input_file} to #{output_file}..."
+    movie.transcode(output_file, options) do |progress|
+      puts "Progress: #{(progress * 100).round(2)}%"
+    end
+
+    puts "Conversion successful for #{output_file}"
+  rescue => e
+    puts "Conversion failed for #{output_file}: #{e.message}"
+    raise
   end
 end
 
