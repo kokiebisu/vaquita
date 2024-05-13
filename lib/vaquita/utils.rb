@@ -45,12 +45,6 @@ module Utils
     end
   end
 
-  def self.write_to_json_file(pathname, data)
-    File.open(pathname, "w") do |file|
-      file.write(JSON.pretty_generate(data))
-    end
-  end
-
   def self.read_cookie_json()
     json = File.read('credentials.json')
     data = JSON.parse(json)
