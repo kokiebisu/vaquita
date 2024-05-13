@@ -33,7 +33,7 @@ RUN bundle install
 # Make port 4567 available to the world outside this container
 EXPOSE 4567
 
-#Health Check
+# Health Check
 HEALTHCHECK CMD curl --fail http://youtube.com/ || exit 1
 
 # Run app.rb when the container launches
