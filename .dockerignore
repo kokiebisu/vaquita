@@ -1,0 +1,9 @@
+.gitignore
+credentials.json
+credentials.example.jsonc
+Makefile
+music_script.applescript
+process_playlist.sh
+process.sh
+README.md
+bin/**

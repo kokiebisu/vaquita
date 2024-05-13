@@ -1,0 +1,10 @@
+services:
+  server:
+    container_name: server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4567:4567"
+    volumes:
+      - .:/usr/src/app

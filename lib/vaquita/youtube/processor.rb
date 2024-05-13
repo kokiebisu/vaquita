@@ -9,19 +9,18 @@ def process_media(url, base_path, output_mode, progressbar)
       song_title, artist_name, album_name, thumbnail_img_url = scraper.scrape_song
       puts "Extracted song info: #{song_title} #{artist_name} #{album_name} #{thumbnail_img_url}"
       song_title = song_title.tr('/', '-') if song_title
-      VideoProcessor.retrieve_song(url, song_title, artist_name, album_name, thumbnail_img_url, base_path)
+      MusicProcessor.retrieve(url, song_title, artist_name, album_name, thumbnail_img_url, base_path)
       output_path = Pathname.new("#{base_path}/#{song_title}.mp3")
     elsif output_mode == 'video'
-      # pass
       title = scraper.scrape_video
       puts "Extracted video info: #{title}"
       video_title = video_title.tr('/', '-') if video_title
-      VideoProcessor.retrieve_video(url, title, base_path)
+      VideoProcessor.retrieve(url, title, base_path)
     end
     progressbar.increment
     output_path
   rescue => e
-    puts "Error processing song #{e}"
+    puts "Error processing media #{e}"
   end
 end
 
@@ -72,19 +71,16 @@ def process_videos(videos_url, base_path)
 end
 
 def process_url(url, output_mode)
-  path = Utils.get_desktop_folder
+  path = Utils.get_base_path
   if url.include?('releases')
-      output_path = process_release_albums(url, path)
+      process_release_albums(url, path)
   elsif url.include?('playlist')
-    output_path = process_playlist(url, path, output_mode)
+    process_playlist(url, path, output_mode)
   elsif url.include?('videos')
-    output_path = process_videos(url, path)
+    process_videos(url, path)
   else
     progressbar = ProgressBar.create(title: "Processing Song", total: 1, format: '%a |%b>>%i| %p%% %t')
-    output_path = process_song(url, path, progressbar)
+    process_media(url, path, 'music', progressbar)
     progressbar.finish
   end
-  {
-    outputPath: output_path.to_s
-  }
 end

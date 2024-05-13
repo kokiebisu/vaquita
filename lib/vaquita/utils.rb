@@ -1,10 +1,8 @@
 require 'pathname'
 
 module Utils
-  def self.get_desktop_folder
-    home_dir = Pathname.new(Dir.home)
-    desktop_folder = home_dir.join('Desktop')
-    return desktop_folder
+  def self.get_base_path
+    return Pathname.new('/usr/src/app/downloads')
   end
 
   def self.sanitize_filename(filename, extra_keywords = [])
@@ -47,8 +45,8 @@ module Utils
     end
   end
 
-  def self.write_to_json_file(data)
-    File.open("output.json", "w") do |file|
+  def self.write_to_json_file(pathname, data)
+    File.open(pathname, "w") do |file|
       file.write(JSON.pretty_generate(data))
     end
   end

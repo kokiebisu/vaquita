@@ -1,5 +1,8 @@
 start-server:
-	ruby app.rb
+	docker-compose up
+
+start-server-clean:
+	docker-compose up --build --remove-orphans
 
 run-daemon:
 	./bin/daemon.sh
