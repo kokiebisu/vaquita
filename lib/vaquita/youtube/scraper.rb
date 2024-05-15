@@ -56,7 +56,6 @@ class YoutubeScraper
     @data['engagementPanels'].each do |panel|
       if panel['engagementPanelSectionListRenderer']
         item_data = panel['engagementPanelSectionListRenderer']&.dig('content', 'structuredDescriptionContentRenderer', 'items')
-        puts item_data
         if item_data and item_data.is_a?(Array)
           item_data.each do |card|
             if card['horizontalCardListRenderer']

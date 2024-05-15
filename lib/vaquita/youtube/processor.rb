@@ -70,17 +70,38 @@ def process_videos(videos_url, base_path)
   return output_path
 end
 
-def process_url(url, output_mode)
+def process_url(cookie_value, url, output_mode)
   path = Utils.get_base_path
+
+  begin
+    uri = URI.parse(url)
+    domain = uri.host
+
+    case domain
+    when 'www.youtube.com'
+      process_youtube(path, url, output_mode)
+    when 'music.youtube.com'
+      process_youtube_music(cookie_value, url, path)
+    else
+      puts "Unsupported domain: #{domain}"
+      raise ArgumentError, "Unsupported domain: #{domain}"
+    end
+  rescue URI::InvalidURIError
+    puts "Invalid URL: #{url}"
+    raise ArgumentError, "Invalid URL: #{url}"
+  end
+end
+
+def process_youtube(path, url, output_mode)
   if url.include?('releases')
-      process_release_albums(url, path)
+    process_release_albums(url, path)
   elsif url.include?('playlist')
     process_playlist(url, path, output_mode)
-  elsif url.include?('videos')
-    process_videos(url, path)
-  else
+  elsif url.include?('watch')
     progressbar = ProgressBar.create(title: "Processing Song", total: 1, format: '%a |%b>>%i| %p%% %t')
-    process_media(url, path, 'music', progressbar)
+    process_media(url, path, output_mode, progressbar)
     progressbar.finish
+  else
+    raise "Cannot identify the type!"
   end
 end

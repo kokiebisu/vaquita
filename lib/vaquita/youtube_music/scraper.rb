@@ -32,7 +32,12 @@ class YoutubeMusicScraper
     endpoints = []
     contents = @data['contents']
     if contents['singleColumnBrowseResultsRenderer']
-      data = contents['twoColumnBrowseResultsRenderer']['secondaryContents']['sectionListRenderer']['contents'][0]['musicPlaylistShelfRenderer']['contents']
+      data = contents['singleColumnBrowseResultsRenderer']
+      if data['secondaryContents']
+        data = data['secondaryContents']['sectionListRenderer']['contents'][0]['musicPlaylistShelfRenderer']['contents']
+      elsif data['tabs']
+        data = data['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents']
+      end
     elsif contents['twoColumnBrowseResultsRenderer']
       data = contents['twoColumnBrowseResultsRenderer']['secondaryContents']['sectionListRenderer']['contents'][0]
       # when it is a playlist
@@ -44,6 +49,12 @@ class YoutubeMusicScraper
       end
     end
     data.each do |item|
+      if item['musicShelfRenderer']['contents']
+        item['musicShelfRenderer']['contents'].each do |video|
+          video_id = video['musicResponsiveListItemRenderer']['overlay']['musicItemThumbnailOverlayRenderer']['content']['musicPlayButtonRenderer']['playNavigationEndpoint']['watchEndpoint']['videoId'] rescue nil
+          endpoints.push("https://www.youtube.com/watch?v=#{video_id}") if video_id
+        end
+      end
       if item['musicPlaylistShelfRenderer']
         item['musicPlaylistShelfRenderer']['contents'].each do |video|
           video_id = video['musicResponsiveListItemRenderer']['overlay']['musicItemThumbnailOverlayRenderer']['content']['musicPlayButtonRenderer']['playNavigationEndpoint']['watchEndpoint']['videoId'] rescue nil
@@ -61,13 +72,18 @@ class YoutubeMusicScraper
   def scrape_playlist_metadata
     contents = @data['contents']
     if contents['singleColumnBrowseResultsRenderer']
-      data = contents['singleColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents']
-      playlist_cover_img_url = data[0]['musicResponsiveHeaderRenderer']['thumbnail']['musicThumbnailRenderer']['thumbnail']['thumbnails'][3]['url']
+      data = contents['singleColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents'][0]
+      if data['musicResponsiveHeaderRenderer']
+        playlist_cover_img_url = data['musicResponsiveHeaderRenderer']['thumbnail']['musicThumbnailRenderer']['thumbnail']['thumbnails'][3]['url']
+        playlist_name = data[0]['musicResponsiveHeaderRenderer']['title']['runs'][0]['text']
+      elsif data['musicShelfRenderer']
+        playlist_cover_img_url = @data['header']['musicDetailHeaderRenderer']['thumbnail']['croppedSquareThumbnailRenderer']['thumbnail']['thumbnails'][-1]['url']
+        playlist_name = @data['header']['musicDetailHeaderRenderer']['title']['runs'][0]['text']
+      end
     elsif contents['twoColumnBrowseResultsRenderer']
       data = contents['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents']
-      playlist_cover_img_url = @data['background']['musicThumbnailRenderer']['thumbnail']['thumbnails'][-1]['url']
+      playlist_cover_img_url = data['background']['musicThumbnailRenderer']['thumbnail']['thumbnails'][-1]['url']
     end
-    playlist_name = data[0]['musicResponsiveHeaderRenderer']['title']['runs'][0]['text']
     return playlist_cover_img_url, playlist_name
   end
 
