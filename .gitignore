@@ -2,3 +2,4 @@ credentials.json
 node_modules
 build
 downloads
+.DS_Store
