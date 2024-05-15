@@ -1,14 +1,10 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  const data = {
-    type: message.command,
-    ...(message.url && { url: message.url }),
-  };
   fetch("http://localhost:4567/process", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify(message),
   })
     .then((response) => response.json())
     .then((data) => {
