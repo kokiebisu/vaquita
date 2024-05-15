@@ -6,15 +6,9 @@ WORKDIR /usr/src/app
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libxml2-dev \
-    libxslt-dev \
-    imagemagick \
     libtag1-dev \
     ffmpeg \    
     build-essential \
-    libpq-dev \
-    nodejs \
-    yarn \
     wget \
     jq \
     sudo \
