@@ -27,7 +27,7 @@ end
 def process_playlist(playlist_url, base_path, output_mode, progressbar=nil)
   playlist_name, urls = YoutubeScraper.new(playlist_url).scrape_playlist(output_mode)
   output_path = Pathname.new("#{base_path}/#{playlist_name}")
-  FileUtils.mkdir(output_path)
+  FileUtils.mkdir_p(output_path)
   progressbar ||= ProgressBar.create(title: "Processing Playlist", total: urls.length, format: '%a |%b>>%i| %p%% %t')
   urls.each do |url|
     process_media(url, output_path, output_mode, progressbar)
@@ -61,7 +61,7 @@ end
 def process_videos(videos_url, base_path)
   channel_name, video_urls = YoutubeScraper.new(videos_url).scrape_videos
   output_path = Pathname.new("#{base_path}/#{channel_name}")
-  FileUtils.mkdir(output_path)
+  FileUtils.mkdir_p(output_path)
   progressbar ||= ProgressBar.create(title: "Processing Videos", total: video_urls.length, format: '%a |%b>>%i| %p%% %t')
   video_urls.each do |url|
     process_media(url, output_path, 'video', progressbar)

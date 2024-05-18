@@ -49,7 +49,7 @@ class YoutubeMusicScraper
       end
     end
     data.each do |item|
-      if item['musicShelfRenderer']['contents']
+      if item['musicShelfRenderer']
         item['musicShelfRenderer']['contents'].each do |video|
           video_id = video['musicResponsiveListItemRenderer']['overlay']['musicItemThumbnailOverlayRenderer']['content']['musicPlayButtonRenderer']['playNavigationEndpoint']['watchEndpoint']['videoId'] rescue nil
           endpoints.push("https://www.youtube.com/watch?v=#{video_id}") if video_id
@@ -83,6 +83,9 @@ class YoutubeMusicScraper
     elsif contents['twoColumnBrowseResultsRenderer']
       data = contents['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents']
       playlist_cover_img_url = data['background']['musicThumbnailRenderer']['thumbnail']['thumbnails'][-1]['url']
+    end
+    if playlist_name == ""
+      raise Exception("playlist name is empty")
     end
     return playlist_cover_img_url, playlist_name
   end

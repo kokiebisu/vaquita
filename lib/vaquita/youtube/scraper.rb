@@ -27,7 +27,7 @@ class YoutubeScraper
   end
 
   def scrape_video
-    @data.dig('engagementPanels', 1, 'engagementPanelSectionListRenderer', 'content', 'structuredDescriptionContentRenderer', 'items', 0, 'videoDescriptionHeaderRenderer', 'title', 'runs', 0, 'text')
+    @data.dig('playerOverlays', 'playerOverlayRenderer', 'videoDetails', 'playerOverlayVideoDetailsRenderer', 'title', 'simpleText')
   end
 
   def scrape_releases
