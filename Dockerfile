@@ -30,5 +30,5 @@ EXPOSE 4567
 # Health Check
 HEALTHCHECK CMD curl --fail http://youtube.com/ || exit 1
 
-# Run app.rb when the container launches
-CMD ["ruby", "app.rb"]
+# Used for running tasks in this container
+CMD ["tail", "-f", "/dev/null"]

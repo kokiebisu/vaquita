@@ -4,18 +4,5 @@ start-server:
 start-server-clean:
 	docker-compose up --build --remove-orphans
 
-run-daemon:
-	./bin/daemon.sh
-
-get-recommended:
-	ruby lib/vaquita.rb --type recommendation
-
-get-trending:
-	ruby lib/vaquita.rb --type trending
-
-get-by-music-playlist:
-	ruby lib/vaquita.rb --type playlist
-
-get-by-youtube-playlist:
-	ruby lib/vaquita.rb --url
-
+combine-playlist-videos:
+	docker-compose exec server ./combine_playlist_videos.sh
