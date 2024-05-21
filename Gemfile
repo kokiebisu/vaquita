@@ -15,3 +15,5 @@ gem 'ruby-progressbar'
 gem 'concurrent-ruby'
 gem 'sinatra'
 gem "rackup", "~> 2.1"
+gem 'httparty'
+gem 'socksify'

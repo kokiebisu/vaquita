@@ -1,0 +1,12 @@
+FROM debian:latest
+
+RUN apt-get update && \
+    apt-get install -y tor && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Configure Tor to listen on all interfaces on port 9050
+RUN echo "SOCKSPort 0.0.0.0:9050" > /etc/tor/torrc
+
+# Run Tor when the container starts
+CMD ["tor"]

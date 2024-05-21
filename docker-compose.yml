@@ -1,11 +1,29 @@
 services:
   server:
     container_name: server
+    depends_on:
+      - tor-proxy
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.app
     ports:
       - "4567:4567"
     volumes:
       - .:/usr/src/app
     command: ["ruby", "app.rb"]
+    networks:
+      - network
+
+  tor-proxy:
+    container_name: tor-proxy
+    build:
+      context: .
+      dockerfile: Dockerfile.tor
+    ports:
+      - "9050:9050"
+    networks:
+      - network
+
+networks:
+  network:
+    driver: bridge

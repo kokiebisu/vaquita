@@ -4,6 +4,10 @@ require 'mini_magick'
 require 'taglib'
 require 'open3'
 require 'streamio-ffmpeg'
+require 'shellwords'
+require 'httparty'
+require 'socksify/http'
+
 
 FFMPEG.logger.level = Logger::ERROR
 
@@ -50,7 +54,13 @@ class MusicProcessor include Processor
   def self.download_video(video_url, video_title, output_path='.')
     puts "Started download process with #{video_url} #{video_title} #{output_path}..."
     output_file_pattern = File.join(output_path, "#{video_title}.%(ext)s")
-    command = "yt-dlp --user-agent \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36\" -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4] -o #{output_file_pattern.shellescape} #{video_url.shellescape}"
+    command = "yt-dlp --proxy socks5://tor-proxy:9050 --user-agent \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36\" -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4] -o #{output_file_pattern.shellescape} #{video_url.shellescape}"
+
+    original_ip = get_current_ip
+    puts "Original IP: #{original_ip}"
+
+    tor_ip = get_current_ip_via_tor
+    puts "Tor IP: #{tor_ip}"
 
     if system(command)
       puts "Download successful for #{video_title}"
@@ -58,6 +68,25 @@ class MusicProcessor include Processor
     else
       puts "Download failed for #{video_title}"
       raise "Failed to execute download command."
+    end
+  end
+
+  def self.get_current_ip
+    response = HTTParty.get('http://httpbin.org/ip')
+    response.parsed_response['origin']
+  end
+
+  def self.get_current_ip_via_tor
+    begin
+      socksify_http = Net::HTTP.SOCKSProxy('tor-proxy', 9050)
+      response = socksify_http.start('httpbin.org', 80) do |http|
+        request = Net::HTTP::Get.new('/ip')
+        http.request(request)
+      end
+      JSON.parse(response.body)['origin']
+    rescue => e
+      puts "Error getting IP via Tor: #{e.message}"
+      nil
     end
   end
 end
@@ -78,7 +107,13 @@ class VideoProcessor include Processor
   def self.download_video(video_url, video_title, output_path='.')
     puts "Started download process with #{video_url} #{video_title} #{output_path}..."
     output_file_pattern = File.join(output_path, "#{video_title}.%(ext)s")
-    command = "yt-dlp -f bestvideo+bestaudio/best -o #{output_file_pattern.shellescape} #{video_url.shellescape}"
+    command = "yt-dlp --proxy socks5://tor-proxy:9050 -f bestvideo+bestaudio/best -o #{output_file_pattern.shellescape} #{video_url.shellescape}"
+
+    original_ip = get_current_ip
+    puts "Original IP: #{original_ip}"
+
+    tor_ip = get_current_ip_via_tor
+    puts "Tor IP: #{tor_ip}"
 
     if system(command)
       downloaded_files = Dir.glob("#{output_path}/#{video_title}.*")
@@ -93,6 +128,25 @@ class VideoProcessor include Processor
     else
       puts "Download failed for #{video_title}"
       raise "Failed to execute download command."
+    end
+  end
+
+  def self.get_current_ip
+    response = HTTParty.get('http://httpbin.org/ip')
+    response.parsed_response['origin']
+  end
+
+  def self.get_current_ip_via_tor
+    begin
+      socksify_http = Net::HTTP.SOCKSProxy('tor-proxy', 9050)
+      response = socksify_http.start('httpbin.org', 80) do |http|
+        request = Net::HTTP::Get.new('/ip')
+        http.request(request)
+      end
+      JSON.parse(response.body)['origin']
+    rescue => e
+      puts "Error getting IP via Tor: #{e.message}"
+      nil
     end
   end
 
