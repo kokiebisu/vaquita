@@ -30,7 +30,7 @@ def process_music_playlist(cookie_value, url, path)
   Utils.download_image(cover_img_url, cover_img_path)
 end
 
-def process_related_songs(url, base_path)
+def process_related_songs(cookie_value, url, base_path)
   song_urls = YoutubeMusicScraper.new(cookie_value, url).scrape_related_songs
   output_path = Pathname.new("#{base_path}/related_songs")
   progressbar ||= ProgressBar.create(title: "Processing Playlist", total: urls.length, format: '%a |%b>>%i| %p%% %t')
