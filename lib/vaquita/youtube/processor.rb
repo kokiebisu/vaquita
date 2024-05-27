@@ -2,20 +2,20 @@ require 'pathname'
 
 require_relative 'scraper'
 
-def process_media(url, base_path, output_mode, progressbar)
+def process_media(url, base_path, output_mode, with_tor, progressbar)
   begin
     scraper = YoutubeScraper.new(url)
     if output_mode == 'music'
       song_title, artist_name, album_name, thumbnail_img_url = scraper.scrape_song
       puts "Extracted song info: #{song_title} #{artist_name} #{album_name} #{thumbnail_img_url}"
       song_title = song_title.tr('/', '-') if song_title
-      MusicProcessor.retrieve(url, song_title, artist_name, album_name, thumbnail_img_url, base_path)
+      MusicProcessor.retrieve(url, song_title, artist_name, album_name, thumbnail_img_url, with_tor, base_path)
       output_path = Pathname.new("#{base_path}/#{song_title}.mp3")
     elsif output_mode == 'video'
       title = scraper.scrape_video
       puts "Extracted video info: #{title}"
       video_title = video_title.tr('/', '-') if video_title
-      VideoProcessor.retrieve(url, title, base_path)
+      VideoProcessor.retrieve(url, title, with_tor, base_path)
     end
     progressbar.increment
     output_path
@@ -24,19 +24,19 @@ def process_media(url, base_path, output_mode, progressbar)
   end
 end
 
-def process_playlist(playlist_url, base_path, output_mode, progressbar=nil)
+def process_playlist(playlist_url, base_path, output_mode, with_tor, progressbar=nil)
   playlist_name, urls = YoutubeScraper.new(playlist_url).scrape_playlist(output_mode)
   output_path = Pathname.new("#{base_path}/#{playlist_name}")
   FileUtils.mkdir_p(output_path)
   progressbar ||= ProgressBar.create(title: "Processing Playlist", total: urls.length, format: '%a |%b>>%i| %p%% %t')
   urls.each do |url|
-    process_media(url, output_path, output_mode, progressbar)
+    process_media(url, output_path, output_mode, with_tor, progressbar)
   end
   progressbar.finish unless progressbar.finished?
   return output_path
 end
 
-def process_release_albums(release_url, base_path)
+def process_release_albums(release_url, base_path, with_tor)
   artist_name, playlist_urls = YoutubeScraper.new(release_url).scrape_release
   output_path = Pathname.new("#{base_path}/#{artist_name}")
   FileUtils.mkdir_p(output_path)
@@ -46,7 +46,7 @@ def process_release_albums(release_url, base_path)
   playlist_urls.each do |playlist_url|
     pool.post do
       begin
-        process_playlist(playlist_url, output_path, 'music', progressbar)
+        process_playlist(playlist_url, output_path, 'music', with_tor, progressbar)
       rescue => e
         puts "Error in processing playlist: #{playlist_url}, Error: #{e}"
       end
@@ -58,19 +58,19 @@ def process_release_albums(release_url, base_path)
   return output_path
 end
 
-def process_videos(videos_url, base_path)
+def process_videos(videos_url, with_tor, base_path)
   channel_name, video_urls = YoutubeScraper.new(videos_url).scrape_videos
   output_path = Pathname.new("#{base_path}/#{channel_name}")
   FileUtils.mkdir_p(output_path)
   progressbar ||= ProgressBar.create(title: "Processing Videos", total: video_urls.length, format: '%a |%b>>%i| %p%% %t')
   video_urls.each do |url|
-    process_media(url, output_path, 'video', progressbar)
+    process_media(url, output_path, 'video', with_tor, progressbar)
   end
   progressbar.finish unless progressbar.finished?
   return output_path
 end
 
-def process_url(cookie_value, url, output_mode)
+def process_url(cookie_value, url, output_mode, with_tor)
   path = Utils.get_base_path
 
   begin
@@ -79,9 +79,9 @@ def process_url(cookie_value, url, output_mode)
 
     case domain
     when 'www.youtube.com'
-      process_youtube(path, url, output_mode)
+      process_youtube(path, url, output_mode, with_tor)
     when 'music.youtube.com'
-      process_youtube_music(cookie_value, url, path)
+      process_youtube_music(cookie_value, url, path, with_tor)
     else
       puts "Unsupported domain: #{domain}"
       raise ArgumentError, "Unsupported domain: #{domain}"
@@ -92,14 +92,14 @@ def process_url(cookie_value, url, output_mode)
   end
 end
 
-def process_youtube(path, url, output_mode)
+def process_youtube(path, url, output_mode, with_tor)
   if url.include?('releases')
-    process_release_albums(url, path)
+    process_release_albums(url, path, with_tor)
   elsif url.include?('playlist')
-    process_playlist(url, path, output_mode)
+    process_playlist(url, path, output_mode, with_tor)
   elsif url.include?('watch')
     progressbar = ProgressBar.create(title: "Processing Song", total: 1, format: '%a |%b>>%i| %p%% %t')
-    process_media(url, path, output_mode, progressbar)
+    process_media(url, path, output_mode, with_tor, progressbar)
     progressbar.finish
   else
     raise "Cannot identify the type!"

@@ -25,18 +25,19 @@ OptionParser.new do |opts|
 end.parse!
 
 def main(options)
+  with_tor = false
   cookie_value = Utils.read_cookie_json
   if ['recommendations', 'trending'].include?(options[:command])
     path = Utils.get_base_path
     if options[:command] == 'recommendations'
-      process_quick_picks(cookie_value, path)
+      process_quick_picks(cookie_value, path, with_tor)
     elsif options[:type] == 'recommendation'
       # to be implemented...
       # process_trending(cookie, path)
     end
   elsif options[:command] == 'url'
       url = ARGV[0]
-      process_url(cookie_value, url, options[:output])
+      process_url(cookie_value, url, options[:output], with_tor)
   else
     raise ArgumentError, "Please specify --command with 'url', 'recommendations' or 'trending'"
   end
