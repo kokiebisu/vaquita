@@ -3,6 +3,7 @@ require 'pathname'
 require_relative 'scraper'
 
 def process_media(url, base_path, output_mode, with_tor, progressbar)
+  puts "Processing media with url: #{url}, base_path: #{base_path}, output_mode: #{output_mode}, with_tor: #{with_tor}, progressbar: #{progressbar}"
   begin
     scraper = YoutubeScraper.new(url)
     if output_mode == 'music'
@@ -14,8 +15,9 @@ def process_media(url, base_path, output_mode, with_tor, progressbar)
     elsif output_mode == 'video'
       title = scraper.scrape_video
       puts "Extracted video info: #{title}"
-      video_title = video_title.tr('/', '-') if video_title
       VideoProcessor.retrieve(url, title, with_tor, base_path)
+      video_title = title.tr('/', '-')
+      output_path = Pathname.new("#{base_path}/#{video_title}.mp4")
     end
     progressbar.increment
     output_path

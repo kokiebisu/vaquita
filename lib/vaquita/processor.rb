@@ -140,6 +140,7 @@ class VideoProcessor include Processor
       downloaded_files = Dir.glob("#{output_path}/#{video_title}.*")
       unless downloaded_files.empty?
         file_extension = File.extname(downloaded_files.first).delete_prefix('.')
+        video_title = File.basename(downloaded_files.first, ".*")
         puts "Download successful for #{video_title} with extension #{file_extension}"
         return video_title, file_extension
       else
