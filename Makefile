@@ -1,4 +1,4 @@
-start-server:
+start-dev-server:
 	docker-compose up
 
 start-server-clean:

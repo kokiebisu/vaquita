@@ -14,6 +14,10 @@ gem 'streamio-ffmpeg'
 gem 'ruby-progressbar'
 gem 'concurrent-ruby'
 gem 'sinatra'
-gem "rackup", "~> 2.1"
 gem 'httparty'
 gem 'socksify'
+
+group :development do
+  gem "rackup", "~> 2.1"
+  gem 'rerun', '~> 0.14.0'
+end

@@ -1,5 +1,7 @@
 FROM ruby:3.3.0
 
+ENV RERUN_COLOR=false
+
 WORKDIR /usr/src/app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -17,7 +19,9 @@ RUN wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /us
 COPY . .
 
 # Install any needed packages specified in Gemfile
-RUN bundle install
+RUN bundle install --with development
+
+RUN gem install rerun
 
 EXPOSE 4567
 

@@ -5,12 +5,13 @@ services:
       - tor-proxy
     build:
       context: .
-      dockerfile: Dockerfile.app
+      dockerfile: Dockerfile.dev
     ports:
       - "4567:4567"
     volumes:
       - .:/usr/src/app
-    command: ["ruby", "app.rb"]
+    command: rerun ruby app.rb
+    tty: true
     networks:
       - network
 
