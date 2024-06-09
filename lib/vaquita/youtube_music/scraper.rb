@@ -76,7 +76,7 @@ class YoutubeMusicScraper
       if data['musicResponsiveHeaderRenderer']
         playlist_cover_img_url = data['musicResponsiveHeaderRenderer']['thumbnail']['musicThumbnailRenderer']['thumbnail']['thumbnails'][3]['url']
         playlist_name = data[0]['musicResponsiveHeaderRenderer']['title']['runs'][0]['text']
-      elsif data['musicShelfRenderer']
+      else
         playlist_cover_img_url = @data['header']['musicDetailHeaderRenderer']['thumbnail']['croppedSquareThumbnailRenderer']['thumbnail']['thumbnails'][-1]['url']
         playlist_name = @data['header']['musicDetailHeaderRenderer']['title']['runs'][0]['text']
       end
