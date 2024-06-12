@@ -1,37 +1,19 @@
 #!/bin/bash
 
-echo "Running script to process by url..."
-
-URL="$1"
-
-if [ -z "$URL" ]; then
-    echo "No playlist URL provided."
-    exit 1
-fi
-
-ruby ./lib/vaquita.rb --type url "$URL"
-
-RESOURCE_PATH=$(jq .'outputPath' output.json | tr -d '"')
-
-echo '{}' > output.json
-
-if [ -z "$RESOURCE_PATH" ]; then
-    echo "Resource path is not specified"
-    exit 1
-fi
+BASE_DIR=$(realpath ./downloads)
 
 PASSWORD=$(jq -r '.password' ./credentials.json)
-
 if [ -z "$PASSWORD" ]; then
     exit 1
 fi
-
 export PASSWORD=$PASSWORD
 
-echo -e "\033[0;36mRunning import_to_apple_music.sh...\033[0m"
-
-echo "$PASSWORD" | sudo -S osascript -e 'tell application "Music" to add POSIX file "'"$RESOURCE_PATH"'"'
-
-rm "$RESOURCE_PATH"
-
-rm -rf "output_dir.txt"
+for SUBFOLDER in "$BASE_DIR"/*; do
+    if [ -d "$SUBFOLDER" ]; then
+        RESOURCE_PATH="$SUBFOLDER/songs"
+        PLAYLIST_NAME_PATH=$(basename "$SUBFOLDER")
+        PLAYLIST_COVER_PATH="$SUBFOLDER/playlist_cover.jpg"
+        TYPE=$(jq -r '.type' "$SUBFOLDER/property.json")
+        echo "$PASSWORD" | sudo -S osascript import_to_apple_music.applescript "$RESOURCE_PATH" "$PLAYLIST_NAME_PATH" "$PLAYLIST_COVER_PATH" "$TYPE"
+    fi
+done
