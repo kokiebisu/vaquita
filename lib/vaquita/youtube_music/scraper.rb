@@ -69,6 +69,13 @@ class YoutubeMusicScraper
     return endpoints
   end
 
+  def scrape_album_or_playlist
+    if @data['header']
+      @data['header']['musicDetailHeaderRenderer']['subtitle']['runs'][0]['text'].downcase
+    end
+    @data['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents'][0]['musicResponsiveHeaderRenderer']['subtitle']['runs'][0]['text'].downcase
+  end
+
   def scrape_playlist_metadata
     contents = @data['contents']
     if contents['singleColumnBrowseResultsRenderer']
@@ -82,7 +89,7 @@ class YoutubeMusicScraper
       end
     elsif contents['twoColumnBrowseResultsRenderer']
       data = contents['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents']
-      playlist_cover_img_url = data['background']['musicThumbnailRenderer']['thumbnail']['thumbnails'][-1]['url']
+      playlist_cover_img_url = data[0]['musicResponsiveHeaderRenderer']['thumbnail']['musicThumbnailRenderer']['thumbnail']['thumbnails'][-1]['url']
     end
     if playlist_name == ""
       raise Exception("playlist name is empty")

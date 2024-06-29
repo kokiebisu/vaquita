@@ -16,7 +16,11 @@ post '/process' do
   if data['command'] == 'recommendations' or data['command'] == 'trending'
     script = "ruby ./lib/vaquita.rb --command #{data['command']} --output #{data['outputType']}"
   else
-    script = "ruby ./lib/vaquita.rb --command url #{data['url']} --output #{data['outputType']}"
+    output_type = 'audio'
+    if data['outputType']
+      output_type = data['outputType']
+    end
+    script = "ruby ./lib/vaquita.rb --command url #{data['url']} --output #{output_type}"
   end
   system(script)
   { status: 'success' }.to_json

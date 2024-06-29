@@ -19,8 +19,15 @@ end
 def process_music_playlist(cookie_value, url, path, with_tor)
   scraper = YoutubeMusicScraper.new(cookie_value, url)
   cover_img_url, playlist_name = scraper.scrape_playlist_metadata
+  type = scraper.scrape_album_or_playlist
   urls = scraper.scrape_playlist_songs
-  output_path = Pathname.new("#{path}/#{playlist_name}/songs")
+  output_path = Pathname.new("#{path}/#{playlist_name}")
+  FileUtils.mkdir_p(output_path)
+  property_file = output_path.join('property.json')
+  unless property_file.exist?
+    File.write(property_file, { type: type }.to_json)
+  end
+  output_path = output_path.join('songs')
   progressbar = ProgressBar.create(title: "Processing Song", total: urls.length, format: '%a |%b>>%i| %p%% %t')
   urls.each do |url|
     process_media(url, output_path, 'music', with_tor, progressbar)
