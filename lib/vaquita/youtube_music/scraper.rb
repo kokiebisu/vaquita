@@ -89,6 +89,7 @@ class YoutubeMusicScraper
       end
     elsif contents['twoColumnBrowseResultsRenderer']
       data = contents['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents']
+      playlist_name = data[0]['musicResponsiveHeaderRenderer']['title']['runs'][0]['text']
       playlist_cover_img_url = data[0]['musicResponsiveHeaderRenderer']['thumbnail']['musicThumbnailRenderer']['thumbnail']['thumbnails'][-1]['url']
     end
     if playlist_name == ""
