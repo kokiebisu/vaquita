@@ -4,6 +4,7 @@ GEM
     base64 (0.2.0)
     bigdecimal (3.1.8)
     concurrent-ruby (1.2.3)
+    connection_pool (2.4.1)
     csv (3.3.0)
     e2mmap (0.1.0)
     ffi (1.17.0)
@@ -43,10 +44,19 @@ GEM
     rb-fsevent (0.11.2)
     rb-inotify (0.11.1)
       ffi (~> 1.0)
+    redis (5.2.0)
+      redis-client (>= 0.22.0)
+    redis-client (0.22.2)
+      connection_pool
     rerun (0.14.0)
       listen (~> 3.0)
     ruby-progressbar (1.13.0)
     ruby2_keywords (0.0.5)
+    sidekiq (7.2.4)
+      concurrent-ruby (< 2)
+      connection_pool (>= 2.3.0)
+      rack (>= 2.2.4)
+      redis-client (>= 0.19.0)
     sinatra (4.0.0)
       mustermann (~> 3.0)
       rack (>= 3.0.0, < 4)
@@ -74,8 +84,10 @@ DEPENDENCIES
   nokogiri
   pathname
   rackup (~> 2.1)
+  redis
   rerun (~> 0.14.0)
   ruby-progressbar
+  sidekiq
   sinatra
   socksify
   streamio-ffmpeg

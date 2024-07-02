@@ -16,6 +16,8 @@ gem 'concurrent-ruby'
 gem 'sinatra'
 gem 'httparty'
 gem 'socksify'
+gem 'sidekiq'
+gem 'redis'
 
 group :development do
   gem "rackup", "~> 2.1"

@@ -14,6 +14,8 @@ services:
     tty: true
     networks:
       - network
+    environment:
+      REDIS_URL: redis://redis:6379/0
 
   tor-proxy:
     container_name: tor-proxy
@@ -22,6 +24,30 @@ services:
       dockerfile: Dockerfile.tor
     ports:
       - "9050:9050"
+    networks:
+      - network
+
+  sidekiq:
+    container_name: sidekiq
+    depends_on:
+      - server
+      - redis
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bundle exec sidekiq -r ./lib/vaquita/worker.rb
+    volumes:
+      - .:/usr/src/app
+    networks:
+      - network
+    environment:
+      REDIS_URL: redis://redis:6379/0
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - "6379:6379"
     networks:
       - network
 

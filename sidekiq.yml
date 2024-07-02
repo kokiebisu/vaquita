@@ -1,0 +1,6 @@
+:concurrency: 10
+:redis:
+  :url: redis://redis:6379/0
+  :namespace: sidekiq
+  :network_timeout: 5
+  :size: 25
