@@ -6,7 +6,7 @@ def process_media(url, base_path, output_mode, with_tor, progressbar)
   puts "Processing media with url: #{url}, base_path: #{base_path}, output_mode: #{output_mode}, with_tor: #{with_tor}, progressbar: #{progressbar}"
   begin
     scraper = YoutubeScraper.new(url)
-    if output_mode == 'music'
+    if output_mode == 'audio'
       song_title, artist_name, album_name, thumbnail_img_url = scraper.scrape_song
       puts "Extracted song info: #{song_title} #{artist_name} #{album_name} #{thumbnail_img_url}"
       song_title = song_title.tr('/', '-') if song_title
