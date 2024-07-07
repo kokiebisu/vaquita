@@ -45,7 +45,7 @@ class YoutubeScraper
 
   def scrape_playlist(output_mode)
     metadata = @data.dig('metadata', 'playlistMetadataRenderer')
-    playlist_name = metadata.dig(output_mode == 'music' ? 'albumName' : 'title')
+    playlist_name = metadata.dig(output_mode == 'audio' ? 'albumName' : 'title')
     urls = @data.dig('contents', 'twoColumnBrowseResultsRenderer', 'tabs', 0, 'tabRenderer', 'content', 'sectionListRenderer', 'contents', 0, 'itemSectionRenderer', 'contents', 0, 'playlistVideoListRenderer', 'contents').select { |content| content.key?('playlistVideoRenderer') }.map { |vid| "https://www.youtube.com/watch?v=" + vid.dig('playlistVideoRenderer', 'navigationEndpoint', 'watchEndpoint', 'videoId') }
     return playlist_name, urls
   rescue => e

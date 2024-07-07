@@ -48,7 +48,7 @@ def process_release_albums(release_url, base_path, with_tor)
   playlist_urls.each do |playlist_url|
     pool.post do
       begin
-        process_playlist(playlist_url, output_path, 'music', with_tor, progressbar)
+        process_playlist(playlist_url, output_path, 'audio', with_tor, progressbar)
       rescue => e
         puts "Error in processing playlist: #{playlist_url}, Error: #{e}"
       end

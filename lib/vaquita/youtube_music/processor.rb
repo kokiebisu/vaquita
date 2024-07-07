@@ -7,7 +7,7 @@ def process_quick_picks(cookie_value, path, with_tor)
   progressbar = ProgressBar.create(title: "Processing Song", total: urls.length, format: '%a |%b>>%i| %p%% %t')
   Pathname.new("#{path}/recommendations")
   urls.each do |url|
-    process_media(url, path, 'music', with_tor, progressbar)
+    process_media(url, path, 'audio', with_tor, progressbar)
   end
   progressbar.finish unless progressbar.finished?
 end
@@ -22,15 +22,15 @@ def process_music_playlist(cookie_value, url, path, with_tor)
   type = scraper.scrape_album_or_playlist
   urls = scraper.scrape_playlist_songs
   output_path = Pathname.new("#{path}/#{playlist_name}")
-  FileUtils.mkdir_p(output_path)
   property_file = output_path.join('property.json')
+  output_path = output_path.join('songs')
+  FileUtils.mkdir_p(output_path)
   unless property_file.exist?
     File.write(property_file, { type: type }.to_json)
   end
-  output_path = output_path.join('songs')
   progressbar = ProgressBar.create(title: "Processing Song", total: urls.length, format: '%a |%b>>%i| %p%% %t')
   urls.each do |url|
-    process_media(url, output_path, 'music', with_tor, progressbar)
+    process_media(url, output_path, 'audio', with_tor, progressbar)
   end
   progressbar.finish unless progressbar.finished?
   cover_img_path = Pathname.new("#{path}/#{playlist_name}/playlist_cover.jpg")
@@ -42,7 +42,7 @@ def process_related_songs(cookie_value, url, with_tor, base_path)
   output_path = Pathname.new("#{base_path}/related_songs")
   progressbar ||= ProgressBar.create(title: "Processing Playlist", total: urls.length, format: '%a |%b>>%i| %p%% %t')
   song_urls.each do |song_url|
-    process_media(song_url, output_path, 'music', with_tor, progressbar)
+    process_media(song_url, output_path, 'audio', with_tor, progressbar)
   end
   return output_path
 end
