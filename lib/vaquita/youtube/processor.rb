@@ -15,7 +15,7 @@ def process_media(url, base_path, output_mode, with_tor, progressbar)
     elsif output_mode == 'video'
       title = scraper.scrape_video
       puts "Extracted video info: #{title}"
-      VideoProcessor.retrieve(url, title, with_tor, base_path)
+      VideoProcessor.retrieve(url, title, with_tor, base_path, output_mode)
       video_title = title.tr('/', '-')
       output_path = Pathname.new("#{base_path}/#{video_title}.mp4")
     end

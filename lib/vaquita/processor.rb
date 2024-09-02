@@ -101,12 +101,14 @@ class MusicProcessor include Processor
 end
 
 class VideoProcessor include Processor
-  def self.retrieve(url, video_title, with_tor, output_path)
+  def self.retrieve(url, video_title, with_tor, output_path, output_mode)
     puts "Started processing the url with #{url} #{video_title} #{output_path}"
     begin
       video_title, file_extension = download_video(url, video_title, with_tor, output_path)
       convert_to_mp4("#{output_path}/#{video_title}.#{file_extension}", "#{output_path}/#{video_title}.mp4")
-      File.delete("#{output_path}/#{video_title}.#{file_extension}")
+      if output_mode == 'audio'
+        File.delete("#{output_path}/#{video_title}.#{file_extension}")
+      end
     rescue => e
       puts "Error processing #{url}: #{e}"
       raise e

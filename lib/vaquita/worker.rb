@@ -7,7 +7,7 @@ class Worker
     if command == 'recommendations' || command == 'trending'
       script = "ruby ./lib/vaquita.rb --command #{command} --output #{output_type}"
     else
-      script = "ruby ./lib/vaquita.rb --command #{command} #{url} --output #{output_type}"
+      script = "ruby ./lib/vaquita.rb --command #{command} --output #{output_type} #{url}"
     end
     system(script)
   end

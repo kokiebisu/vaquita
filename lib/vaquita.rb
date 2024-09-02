@@ -13,7 +13,7 @@ require_relative 'vaquita/utils'
 
 options = {}
 OptionParser.new do |opts|
-  opts.banner = "Usage: ruby lib/vaquita.rb --command [url|recommendations|trending] --output [VIDEO|AUDIO]"
+  opts.banner = "Usage: ruby lib/vaquita.rb --command [url|recommendations|trending] --output [video|audio]"
 
   opts.on("--command COMMAND", ["url", "music-playlist", "recommendation"], "Specify 'url' for URLs or 'recommendation' for recommendations") do |command|
     options[:command] = command
